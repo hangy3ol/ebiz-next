@@ -1,8 +1,6 @@
-import { createSession, deleteSession } from '@/libs/auth/session';
 import { db } from '@/libs/db';
 import { convertCamelCase } from '@/utils/caseConverter';
 import { executeWithTransaction } from '@/utils/executeWithTransaction';
-import { response } from '@/utils/response';
 
 // 로그인
 export async function login({ userId, password }) {
@@ -65,7 +63,7 @@ export async function login({ userId, password }) {
 
     const user = convertCamelCase(raw);
 
-    return { success: true, user };
+    return { success: true, result: user };
   } catch (error) {
     console.error('[login] 로그인 실패:', error);
     throw error;
@@ -74,7 +72,7 @@ export async function login({ userId, password }) {
 
 // 비밀번호 변경
 export async function updatePassword(
-  { currentPassword, newPassword, userId },
+  { currentPassword, newPassword, excutedBy },
   transaction = null,
 ) {
   return await executeWithTransaction(async (trx) => {
@@ -84,11 +82,11 @@ export async function updatePassword(
         `
 					SELECT password
 					FROM ${db.ebiz}.user_passwords
-					WHERE user_id = :userId
+					WHERE user_id = :excutedBy
 					LIMIT 1;
 				`,
         {
-          replacements: { userId },
+          replacements: { excutedBy },
           type: db.sequelize.QueryTypes.SELECT,
           transaction: trx,
           plain: true, // 결과 1건만 객체로 반환
@@ -108,28 +106,19 @@ export async function updatePassword(
         `
 					UPDATE ${db.ebiz}.user_passwords
 					SET password = :newPassword
-					WHERE user_id = :userId;
+					WHERE user_id = :excutedBy;
 				`,
         {
-          replacements: { newPassword, userId },
+          replacements: { newPassword, excutedBy },
           type: db.sequelize.QueryTypes.UPDATE,
           transaction: trx,
         },
       );
 
-      return {
-        success: true,
-        message: '비밀번호가 성공적으로 변경되었습니다.',
-      };
+      return { success: true };
     } catch (error) {
       console.error('[changePassword] 비밀번호 변경 실패:', error);
       throw error;
     }
   }, transaction);
-}
-
-// 로그아웃
-export async function logout() {
-  await deleteSession();
-  return response.ok('정상적으로 로그아웃 처리되었습니다.', {});
 }

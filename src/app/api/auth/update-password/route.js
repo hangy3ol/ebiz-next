@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { updatePassword } from '@/features/auth/service/authService';
-import { verifyJwt } from '@/libs/auth/session';
+import { getCurrentUser } from '@/libs/auth/getCurrentUser';
 import { updatePasswordServerSchema } from '@/validations/updatePasswordSchema';
 
 export async function POST(req) {
@@ -17,35 +17,28 @@ export async function POST(req) {
       );
     }
 
-    // 세션에서 사용자 정보 추출
-    const token = req.cookies.get('session')?.value;
-    if (!token) {
+    const { currentPassword, newPassword } = parsed.data;
+
+    // 사용자 정보 얻기
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json(
         { success: false, message: '인증 정보가 없습니다.' },
         { status: 401 },
       );
     }
 
-    let user;
-    try {
-      user = await verifyJwt(token);
-    } catch {
-      return NextResponse.json(
-        { success: false, message: '세션이 만료되었거나 유효하지 않습니다.' },
-        { status: 401 },
-      );
-    }
-
-    const { currentPassword, newPassword } = parsed.data;
-
     // 실제 비즈니스 로직 호출
-    const { success, message } = await updatePassword({
+    const { success } = await updatePassword({
       currentPassword,
       newPassword,
-      userId: user.userId,
+      excutedBy: user.userId,
     });
 
-    return NextResponse.json({ success, message }, { status: 200 });
+    return NextResponse.json(
+      { success, message: '비밀번호가 성공적으로 변경되었습니다.' },
+      { status: 200 },
+    );
   } catch (error) {
     console.error('[UPDATE_PASSWORD_API_ERROR]', error);
 

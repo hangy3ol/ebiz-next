@@ -15,9 +15,9 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
-import { logoutAction } from '@/app/actions/auth/authAction';
 import UserPasswordDialog from '@/components/dialogs/UserPasswordDialog';
 import UserProfileDialog from '@/components/dialogs/UserProfileDialog';
+import { logoutApi } from '@/features/auth/api/authApi';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { getProfile } from '@/utils/getProfile';
 
@@ -71,7 +71,7 @@ export default function UserMenu() {
   // 로그아웃
   const handleLogout = async () => {
     try {
-      const { success, message } = await logoutAction();
+      const { success, message } = await logoutApi();
       if (success) {
         clearProfile();
         enqueueSnackbar(message, {

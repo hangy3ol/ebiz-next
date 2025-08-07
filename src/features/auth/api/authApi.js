@@ -6,7 +6,6 @@ export async function loginApi({ userId, password }) {
     userId,
     password,
   });
-
   return response.data;
 }
 
@@ -16,6 +15,11 @@ export async function updatePasswordApi({ currentPassword, newPassword }) {
     currentPassword,
     newPassword,
   });
+  return response.data;
+}
 
+// 로그아웃
+export async function logoutApi() {
+  const response = await axiosClient.post('/api/auth/logout');
   return response.data;
 }
