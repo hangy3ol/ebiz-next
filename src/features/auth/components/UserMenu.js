@@ -15,9 +15,9 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
-import UserPasswordDialog from '@/components/dialogs/UserPasswordDialog';
-import UserProfileDialog from '@/components/dialogs/UserProfileDialog';
 import { logoutApi } from '@/features/auth/api/authApi';
+import UserPasswordDialog from '@/features/auth/components/UserPasswordDialog';
+import UserProfileDialog from '@/features/auth/components/UserProfileDialog';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { getProfile } from '@/utils/getProfile';
 

@@ -2,7 +2,7 @@ import './globals.css';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import localFont from 'next/font/local';
 
-import ConfirmDialog from '@/components/dialogs/ConfirmDialog';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import NotistackProvider from '@/components/NotistackProvider';
 import ThemeProvider from '@/theme/ThemeProvider';
 
