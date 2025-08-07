@@ -1,0 +1,22 @@
+/* 기본 폰트 적용 */
+html,
+body {
+  font-family: var(--font-pretendard, 'Pretendard'), sans-serif;
+}
+
+/* 자동완성 배경색 변경 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  box-shadow: 0 0 0px 1000px var(--mui-palette-background-paper) inset !important;
+  -webkit-text-fill-color: var(--mui-palette-text-primary) !important;
+  caret-color: var(--mui-palette-text-primary);
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* a 태그 밑줄 제거 */
+a {
+  text-decoration: none;
+  color: inherit;
+}
