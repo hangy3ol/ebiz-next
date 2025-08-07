@@ -1,14 +1,12 @@
-import NoticeList from '@/app/(main)/notices/components/NoticeList';
-import { authGuard } from '@/libs/auth/authGuard';
-import { fetchNoticeList } from '@/services/notices/noticeService';
+import NoticeList from '@/features/notices/components/NoticeList';
+import { fetchNoticeList } from '@/features/notices/services/noticeService';
 
 export default async function NoticePage() {
-  const currentUser = await authGuard();
-  const { success, data } = await fetchNoticeList();
+  const { success, result } = await fetchNoticeList();
 
   if (!success) {
     throw new Error();
   }
 
-  return <NoticeList initialData={data} currentUser={currentUser} />;
+  return <NoticeList initialData={result} />;
 }

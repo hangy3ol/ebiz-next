@@ -14,18 +14,15 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useState, useEffect, useMemo } from 'react';
 
-import NoticeDetailDialog from '@/app/(main)/notices/components/NoticeDetailDialog';
 import { matchIncludes } from '@/utils/filters';
 
-export default function NoticeList({ initialData, currentUser }) {
+export default function NoticeList({ initialData }) {
   // 상태
   const [rows, setRows] = useState(initialData);
   const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState({
     keyword: '',
   });
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedNotice, setSelectedNotice] = useState(null);
 
   // 훅
   const router = useRouter();
@@ -91,15 +88,7 @@ export default function NoticeList({ initialData, currentUser }) {
 
   // 그리드 행 원클릭
   const handleRowClick = ({ id, row }) => {
-    // 클릭된 행의 데이터를 상태에 저장
-    setSelectedNotice(id);
-    setDialogOpen(true);
-  };
-
-  // 공지사항 다이얼로그 닫기
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setSelectedNotice(null);
+    router.push(`/notices/${id}`);
   };
 
   return (
@@ -194,15 +183,6 @@ export default function NoticeList({ initialData, currentUser }) {
           <Skeleton variant="rounded" height="100%" animation="wave" />
         )}
       </Box>
-
-      {/* 공지사항 상세 다이얼로그 */}
-      {selectedNotice && (
-        <NoticeDetailDialog
-          open={dialogOpen}
-          onClose={handleCloseDialog}
-          noticeId={selectedNotice}
-        />
-      )}
     </Box>
   );
 }

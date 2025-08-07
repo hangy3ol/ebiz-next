@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { updatePassword } from '@/features/auth/service/authService';
+import { updatePassword } from '@/features/auth/services/authService';
 import { getCurrentUser } from '@/libs/auth/getCurrentUser';
 import { updatePasswordServerSchema } from '@/validations/updatePasswordSchema';
 

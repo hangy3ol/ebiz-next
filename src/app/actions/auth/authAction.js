@@ -1,11 +1,11 @@
 'use server';
 
-import { authSchema } from '@/features/auth/schema/authSchema';
+import { authSchema } from '@/features/auth/schemas/authSchema';
 import {
   login,
   updatePassword,
   logout,
-} from '@/features/auth/service/authService';
+} from '@/features/auth/services/authService';
 import { response } from '@/utils/response';
 import { updatePasswordServerSchema } from '@/validations/updatePasswordSchema';
 

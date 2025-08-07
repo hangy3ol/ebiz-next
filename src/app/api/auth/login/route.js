@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { authSchema } from '@/features/auth/schema/authSchema';
-import { login } from '@/features/auth/service/authService';
+import { authSchema } from '@/features/auth/schemas/authSchema';
+import { login } from '@/features/auth/services/authService';
 import { createSession } from '@/libs/auth/session';
 
 export async function POST(req) {

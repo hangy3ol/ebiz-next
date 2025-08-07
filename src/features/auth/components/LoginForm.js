@@ -18,7 +18,7 @@ import { useForm, Controller } from 'react-hook-form';
 
 import ThemeToggleButton from '@/components/ThemeToggleButton';
 import { loginApi } from '@/features/auth/api/authApi';
-import { authSchema } from '@/features/auth/schema/authSchema';
+import { authSchema } from '@/features/auth/schemas/authSchema';
 import { useProfileStore } from '@/stores/useProfileStore';
 
 export default function LoginForm() {
