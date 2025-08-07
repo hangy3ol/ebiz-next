@@ -16,11 +16,10 @@ import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
-import { loginAction } from '@/app/actions/auth/authAction';
 import ThemeToggleButton from '@/components/ThemeToggleButton';
-import { loginApi } from '@/services/auth/authApi';
+import { loginApi } from '@/features/auth/api/authApi';
+import { authSchema } from '@/features/auth/schema/authSchema';
 import { useProfileStore } from '@/stores/useProfileStore';
-import { loginSchema } from '@/validations/loginSchema';
 
 export default function LoginForm() {
   // 상태
@@ -39,7 +38,7 @@ export default function LoginForm() {
     setError, // 에러 메시지 직접 설정 시 사용
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(authSchema),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
     defaultValues: {

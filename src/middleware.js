@@ -1,38 +1,42 @@
 import { NextResponse } from 'next/server';
 
-import { verifyJwt, updateSession } from './libs/auth/session';
+import { verifyJwt, updateSession } from '@/libs/auth/session';
 
 export async function middleware(request) {
   const token = request.cookies.get('session')?.value;
-  const res = NextResponse.next();
 
+  // 1. 토큰 없음 → 로그인 페이지로 리다이렉트
   if (!token) {
-    return res;
+    return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  const response = NextResponse.next();
 
   try {
-    // 1. 기존 토큰 decode
+    // 2. 토큰 유효성 검증
     const payload = await verifyJwt(token);
 
-    // 2. 토큰 잔여기간이 15일 미만인 경우 재발급
-    const expiresAt = payload.exp * 1000; // 타임스탬프
+    // 3. 토큰 만료까지 15일 미만 → 자동 재발급
+    const expiresAt = payload.exp * 1000;
     const THRESHOLD = 1000 * 60 * 60 * 24 * 15; // 15일
-    if (expiresAt - Date.now() < THRESHOLD) {
-      await updateSession(res.cookies);
+    const remaining = expiresAt - Date.now();
 
-      console.log(
-        '[middleware] session refreshed:',
-        payload?.userId || '[unknown]',
-      );
+    if (remaining < THRESHOLD) {
+      await updateSession(response.cookies);
+      console.log('[middleware] session refreshed:', payload?.userId);
     }
-  } catch (err) {
-    console.error('[middleware] invalid session, clearing:', err);
-    res.cookies.delete('session');
-  }
 
-  return res;
+    return response;
+  } catch (err) {
+    // 유효하지 않은 토큰 → 삭제 후 로그인으로 리다이렉트
+    console.error('[middleware] invalid session, redirecting:', err);
+
+    const res = NextResponse.redirect(new URL('/login', request.url));
+    res.cookies.delete('session');
+    return res;
+  }
 }
 
 export const config = {
-  matcher: ['/hr/:path*', '/notices/:path*'],
+  matcher: ['/hr/:path*', '/notices/:path*'], // 인증 필요 경로 설정
 };

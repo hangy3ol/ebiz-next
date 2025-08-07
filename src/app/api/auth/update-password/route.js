@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { updatePassword } from '@/features/auth/service/authService';
 import { verifyJwt } from '@/libs/auth/session';
-import { updatePassword } from '@/services/auth/authService';
 import { updatePasswordServerSchema } from '@/validations/updatePasswordSchema';
 
 export async function POST(req) {

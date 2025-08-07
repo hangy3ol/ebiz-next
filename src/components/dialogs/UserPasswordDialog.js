@@ -14,11 +14,10 @@ import { useSnackbar } from 'notistack';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
-import { updatePasswordAction } from '@/app/actions/auth/authAction';
-import { updatePasswordApi } from '@/services/auth/authApi';
+import { updatePasswordApi } from '@/features/auth/api/authApi';
 import { updatePasswordSchema } from '@/validations/updatePasswordSchema';
 
-export default function UserPasswordDialog({ open, onClose, profile }) {
+export default function UserPasswordDialog({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 

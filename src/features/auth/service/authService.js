@@ -21,7 +21,7 @@ export async function login({ userId, password }) {
         plain: true, // 결과 1건만 객체로 반환
       },
     );
-    console.log(password, storedPassword);
+
     if (!storedPassword) {
       throw new Error('사용자가 존재하지 않습니다.');
     }

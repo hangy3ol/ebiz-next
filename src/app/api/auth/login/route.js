@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 
+import { authSchema } from '@/features/auth/schema/authSchema';
+import { login } from '@/features/auth/service/authService';
 import { createSession } from '@/libs/auth/session';
-import { login } from '@/services/auth/authService';
-import { loginSchema } from '@/validations/loginSchema';
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const parsed = loginSchema.safeParse(body);
+    const parsed = authSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -35,11 +35,14 @@ export async function POST(req) {
     // 단일 session 토큰 생성 및 쿠키 설정
     await createSession(user);
 
-    return NextResponse.json({
-      success: true,
-      message: '로그인에 성공했습니다.',
-      data: user,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: '로그인에 성공했습니다.',
+        data: user,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error('[LOGIN_API_ERROR]', error);
 
