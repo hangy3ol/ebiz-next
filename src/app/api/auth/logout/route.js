@@ -10,6 +10,7 @@ export async function POST() {
       {
         success: true,
         message: '정상적으로 로그아웃 처리되었습니다.',
+        data: null,
       },
       { status: 200 },
     );
@@ -20,6 +21,7 @@ export async function POST() {
       {
         success: false,
         message: '로그아웃 처리 중 오류가 발생했습니다.',
+        data: null,
       },
       { status: 500 },
     );

@@ -14,6 +14,7 @@ export async function POST(req) {
         {
           success: false,
           message: '입력값이 유효하지 않습니다.',
+          data: null,
         },
         { status: 400 },
       );
@@ -25,7 +26,7 @@ export async function POST(req) {
 
     if (!success) {
       return NextResponse.json(
-        { success: false, message: '로그인에 실패했습니다.' },
+        { success: false, message: '로그인에 실패했습니다.', data: null },
         { status: 401 },
       );
     }
@@ -50,6 +51,7 @@ export async function POST(req) {
       {
         success: false,
         message: '로그인 처리 중 문제가 발생했습니다.',
+        data: null,
       },
       { status: 500 },
     );

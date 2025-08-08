@@ -23,7 +23,11 @@ export async function GET() {
     console.error('[fetchNoticeListApi] 오류:', error);
 
     return NextResponse.json(
-      { success: false, message: '공지사항 목록 조회 중 오류가 발생했습니다.' },
+      {
+        success: false,
+        message: '공지사항 목록 조회 중 오류가 발생했습니다.',
+        data: null,
+      },
       { status: 500 },
     );
   }
@@ -70,7 +74,7 @@ export async function POST(request) {
     );
 
     return NextResponse.json(
-      { success, message: '공지사항이 정상적으로 저장되었습니다.' },
+      { success, message: '공지사항이 정상적으로 저장되었습니다.', data: null },
       { status: 200 },
     );
   } catch (error) {
@@ -79,6 +83,7 @@ export async function POST(request) {
       {
         success: false,
         message: '공지사항 저장에 실패했습니다.',
+        data: null,
       },
       { status: 500 },
     );
