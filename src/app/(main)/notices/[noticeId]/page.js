@@ -1,4 +1,4 @@
-import NoticeForm from '@/features/notices/components/NoticeForm';
+import NoticeDetail from '@/features/notices/components/NoticeDetail';
 import { fetchNoticeById } from '@/services/notices/noticeService';
 
 export default async function NoticeDetailPage({ params }) {
@@ -11,5 +11,5 @@ export default async function NoticeDetailPage({ params }) {
     throw new Error();
   }
 
-  return <NoticeForm initialData={result} mode="read" />;
+  return <NoticeDetail initialData={result} />;
 }

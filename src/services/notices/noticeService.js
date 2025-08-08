@@ -67,11 +67,12 @@ export async function fetchNoticeById(params) {
       },
     );
 
-    const attachment = await db.sequelize.query(
+    const files = await db.sequelize.query(
       `
         SELECT
           id,
           original_file_name AS name,
+          file_size,
           'keep' AS action
         FROM ${db.ebiz}.notice_attachments
         WHERE notice_id = :noticeId
@@ -83,10 +84,18 @@ export async function fetchNoticeById(params) {
       },
     );
 
-    return response.ok('공지사항을 성공적으로 조회하였습니다.', {
-      notice: convertCamelCase(notice),
-      attachment: convertCamelCase(attachment),
-    });
+    // return response.ok('공지사항을 성공적으로 조회하였습니다.', {
+    //   notice: convertCamelCase(notice),
+    //   files: convertCamelCase(files),
+    // });
+
+    return {
+      success: true,
+      result: {
+        notice: convertCamelCase(notice),
+        files: convertCamelCase(files),
+      },
+    };
   } catch (error) {
     throw error;
   }
