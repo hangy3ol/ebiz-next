@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { verifyJwt } from '@/libs/auth/session';
 
 export async function getCurrentUser() {
-  const token = cookies().get('session')?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get('session')?.value;
   if (!token) return null;
 
   try {

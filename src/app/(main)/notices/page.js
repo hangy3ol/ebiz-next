@@ -1,7 +1,7 @@
 import NoticeList from '@/features/notices/components/NoticeList';
 import { fetchNoticeList } from '@/features/notices/services/noticeService';
 
-export default async function NoticePage() {
+export default async function NoticeListPage() {
   const { success, result } = await fetchNoticeList();
 
   if (!success) {

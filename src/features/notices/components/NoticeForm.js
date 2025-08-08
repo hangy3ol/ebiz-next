@@ -1,17 +1,26 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Box, Typography, Button, TextField } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  TextField,
+  Divider,
+} from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
-import { saveNoticeAction } from '@/app/actions/notices/noticeAction';
 import FileUploader from '@/components/FileUploader';
-import { noticeSchema } from '@/validations/noticeSchema';
+import { saveNoticeApi } from '@/features/notices/api/noticeApi';
+import { noticeSchema } from '@/features/notices/schemas/noticeSchema';
 
-export default function NoticeForm({ initialData, isNew }) {
+export default function NoticeForm({ mode = 'create', initialData = null }) {
+  const isEdit = mode === 'edit';
+
   const [files, setFiles] = useState([]);
 
   // 훅
@@ -33,6 +42,7 @@ export default function NoticeForm({ initialData, isNew }) {
   });
 
   const onSubmit = async (data) => {
+    console.log(data, files);
     try {
       // form 객체 생성
       const formData = new FormData();
@@ -58,12 +68,14 @@ export default function NoticeForm({ initialData, isNew }) {
         formData.append('filesToDelete', filesToDelete);
       }
 
-      const { success, message } = await saveNoticeAction(formData);
+      const { success, message } = await saveNoticeApi(formData);
+      console.log(success, message);
       if (success) {
         enqueueSnackbar(message, { variant: 'success' });
-        // router.push('/notices');
+        router.push('/notices');
       }
     } catch (error) {
+      console.log(error);
       enqueueSnackbar('공지사항 저장에 실패했습니다.', {
         variant: 'error',
       });
@@ -72,7 +84,7 @@ export default function NoticeForm({ initialData, isNew }) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/*  페이지 제목 + 전역 액션 버튼 줄 */}
+      {/* 헤더 */}
       <Box
         sx={{
           display: 'flex',
@@ -81,12 +93,21 @@ export default function NoticeForm({ initialData, isNew }) {
           mb: 2,
         }}
       >
-        <Typography variant="h4">
-          {isNew ? '공지사항 등록' : '공지사항 수정'}
-        </Typography>
+        <Stack direction="row" spacing={1} alignItems="center" minWidth={0}>
+          <Typography variant="h4">
+            {isEdit ? '공지사항 수정' : '공지사항 등록'}
+          </Typography>
+        </Stack>
+
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="text">취소</Button>
+          <Button variant="contained" onClick={handleSubmit(onSubmit)}>
+            {isEdit ? '수정 저장' : '등록'}
+          </Button>
+        </Box>
       </Box>
 
-      {/* 컨테이너 */}
+      {/* 본문/메타/첨부 */}
       <Box
         sx={{
           flex: 1,
@@ -99,37 +120,25 @@ export default function NoticeForm({ initialData, isNew }) {
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
-        {/* 버튼 그룹 */}
-        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-          {!isNew && (
-            <Button variant="contained" color="error">
-              삭제
-            </Button>
-          )}
-          <Button type="submit" variant="contained">
-            저장
-          </Button>
-        </Box>
-
         {/* 제목 */}
-        <Box>
-          <Controller
-            name="title"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                required
-                label="제목"
-                error={!!errors.title}
-                helperText={errors.title?.message}
-              />
-            )}
-          />
-        </Box>
+        <Controller
+          name="title"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="제목"
+              fullWidth
+              required
+              placeholder="제목을 입력하세요"
+              sx={{ mt: 1 }}
+              error={!!errors.title}
+              helperText={errors.title?.message}
+            />
+          )}
+        />
 
-        {/* 내용 */}
+        {/* 본문 */}
         <Box
           sx={{
             flex: 1,
@@ -144,10 +153,11 @@ export default function NoticeForm({ initialData, isNew }) {
             render={({ field }) => (
               <TextField
                 {...field}
+                label="본문"
                 fullWidth
-                required
-                label="내용"
                 multiline
+                required
+                placeholder="내용을 입력하세요"
                 sx={{
                   flex: 1,
                   '& .MuiInputBase-root': {
@@ -166,17 +176,19 @@ export default function NoticeForm({ initialData, isNew }) {
           />
         </Box>
 
-        {/*  첨부파일 */}
-        <Box>
-          {/* <Typography variant="subtitle1">첨부파일 영역</Typography> */}
-          {/* 여기에 첨부파일 업로드 컴포넌트 등을 추가할 수 있습니다. */}
+        <Divider />
+
+        {/* 첨부 파일 */}
+        <Stack spacing={1}>
+          <Typography variant="subtitle2">첨부파일</Typography>
+
           <FileUploader
             files={files}
             onChange={setFiles}
             maxFiles={3}
             maxSize={10 * 1024 * 1024}
           />
-        </Box>
+        </Stack>
       </Box>
     </Box>
   );

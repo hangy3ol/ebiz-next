@@ -11,6 +11,7 @@ import {
   ListItemIcon,
   ListItemText,
   Stack,
+  Divider,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
@@ -100,6 +101,8 @@ export default function NoticeDetail({ initialData }) {
             {notice.content ?? ''}
           </Typography>
         </Paper>
+
+        <Divider />
 
         {/* 첨부파일 (항상 섹션 유지) */}
         <Box>

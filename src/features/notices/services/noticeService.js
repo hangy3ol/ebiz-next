@@ -1,7 +1,6 @@
 import { db } from '@/libs/db';
 import { convertCamelCase } from '@/utils/caseConverter';
 import { executeWithTransaction } from '@/utils/executeWithTransaction';
-import { response } from '@/utils/response';
 
 // 공지사항 목록 조회
 export async function fetchNoticeList() {
@@ -157,7 +156,7 @@ export async function updateNotice(
 
 // 공지사항 저장(등록, 수정)
 export async function saveNotice(
-  { notice, files, filesToDelete },
+  { notice, filesMetadata, filesToDelete },
   executedBy,
   transaction = null,
 ) {
@@ -172,9 +171,13 @@ export async function saveNotice(
     }
 
     // 첨부파일 추가
-    if (files?.length > 0) {
-      console.log(files, noticeId, executedBy);
-      await insertNoticeAttachment(files, noticeId, executedBy, transaction);
+    if (filesMetadata?.length > 0) {
+      await insertNoticeAttachment(
+        filesMetadata,
+        noticeId,
+        executedBy,
+        transaction,
+      );
     }
 
     // 첨부파일 삭제
@@ -182,13 +185,13 @@ export async function saveNotice(
       await exports.deleteNoticeAttachment(filesToDelete, transaction);
     }
 
-    return response.ok('공지사항이 정상적으로 저장되었습니다.', {});
+    return { success: true };
   }, transaction);
 }
 
 // 공지사항 첨부파일 추가
 export async function insertNoticeAttachment(
-  files,
+  filesMetadata,
   noticeId,
   executedBy,
   transaction = null,
@@ -197,18 +200,18 @@ export async function insertNoticeAttachment(
     const values = [];
     const replacements = {};
 
-    files.forEach((file, index) => {
+    filesMetadata.forEach((metadata, index) => {
       values.push(`(
-        :noticeId${index}, :originalFileName${index}, :storedFileName${index}, :filePath${index},
-        :mimeType${index}, :fileExtension${index}, :fileSize${index}, :createdBy${index}
-      )`);
+    :noticeId${index}, :originalFileName${index}, :storedFileName${index}, :filePath${index},
+    :mimeType${index}, :fileExtension${index}, :fileSize${index}, :createdBy${index}
+  )`);
       replacements[`noticeId${index}`] = noticeId;
-      replacements[`originalFileName${index}`] = file.originalFileName;
-      replacements[`storedFileName${index}`] = file.storedFileName;
-      replacements[`filePath${index}`] = file.filePath;
-      replacements[`mimeType${index}`] = file.mimeType;
-      replacements[`fileExtension${index}`] = file.fileExtension;
-      replacements[`fileSize${index}`] = file.fileSize;
+      replacements[`originalFileName${index}`] = metadata.originalFileName;
+      replacements[`storedFileName${index}`] = metadata.storedFileName;
+      replacements[`filePath${index}`] = metadata.filePath;
+      replacements[`mimeType${index}`] = metadata.mimeType;
+      replacements[`fileExtension${index}`] = metadata.fileExtension;
+      replacements[`fileSize${index}`] = metadata.fileSize;
       replacements[`createdBy${index}`] = executedBy;
     });
 
