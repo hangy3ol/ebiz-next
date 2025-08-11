@@ -14,7 +14,10 @@ import {
   Divider,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 
+import { deleteNoticeApi } from '@/features/notices/api/noticeApi';
+import { confirm } from '@/utils/confirm';
 import { formatFileSize } from '@/utils/fileUtils';
 import { formatDate } from '@/utils/formatDate';
 
@@ -23,10 +26,35 @@ export default function NoticeDetail({ initialData }) {
 
   // 훅
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   // 수정 페이지로 이동하는 핸들러 함수
   const handleEdit = () => {
     router.push(`/notices/${notice.noticeId}/edit`);
+  };
+
+  const handleDelete = async () => {
+    const isConfirm = await confirm({
+      title: '확인 요청',
+      content: '해당 공지사항을 삭제하시겠습니까?',
+    });
+
+    if (!isConfirm) {
+      return;
+    }
+
+    try {
+      const { success, message } = await deleteNoticeApi(notice.noticeId);
+      if (success) {
+        enqueueSnackbar(message, { variant: 'success' });
+        router.push('/notices');
+      }
+    } catch (error) {
+      console.log(error);
+      enqueueSnackbar('공지사항 삭제에 실패했습니다.', {
+        variant: 'error',
+      });
+    }
   };
 
   return (
@@ -82,7 +110,7 @@ export default function NoticeDetail({ initialData }) {
               수정
             </Button>
 
-            <Button variant="outlined" color="error" disabled>
+            <Button variant="outlined" color="error" onClick={handleDelete}>
               삭제
             </Button>
           </Box>

@@ -28,12 +28,12 @@ export async function uploadHandler(files, destinationDir) {
     for (const file of files) {
       // 파일 객체에서 메타데이터 추출
       const originalFileName = file.name;
-      const fileExtension = path.extname(originalFileName);
+      const extension = path.extname(originalFileName);
       const mimeType = file.type;
-      const fileSize = file.size;
+      const size = file.size;
 
       // nanoid를 사용해 짧고 안전한 고유 ID 생성
-      const storedFileName = `${nanoid()}${fileExtension}`;
+      const storedFileName = `${nanoid()}${extension}`;
 
       // DB에 저장될 상대 경로 생성 (예: 'notices/20250808/xxxx.txt')
       const filePath = path.join(destinationDir, todayFolder, storedFileName);
@@ -52,10 +52,10 @@ export async function uploadHandler(files, destinationDir) {
       fileMetadataList.push({
         originalFileName,
         storedFileName,
-        filePath: filePath.replace(/\\/g, '/'), // URL 호환성을 위해 경로 구분자를 변경
+        path: filePath.replace(/\\/g, '/'), // URL 호환성을 위해 경로 구분자를 변경
         mimeType,
-        fileExtension,
-        fileSize,
+        extension,
+        size,
       });
     }
 

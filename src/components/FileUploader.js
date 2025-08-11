@@ -176,9 +176,9 @@ export default function FileUploader({
                       onClick={(e) => {
                         e.stopPropagation();
 
-                        if (file.url) {
+                        if (file.id) {
                           // 서버에서 온 파일
-                          window.open(file.url, '_blank');
+                          window.location.href = `/api/download?fileId=${file.id}`;
                         } else if (file.file) {
                           // 클라이언트에서 업로드한 파일
                           triggerFileDownload(file.file, file.name);

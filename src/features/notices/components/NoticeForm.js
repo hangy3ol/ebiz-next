@@ -36,20 +36,20 @@ export default function NoticeForm({ mode = 'create', initialData = null }) {
     mode: 'onSubmit',
     reValidateMode: 'onChange',
     defaultValues: {
+      noticeId: initialData?.notice?.noticeId || '',
       title: initialData?.notice?.title || '',
       content: initialData?.notice?.content || '',
     },
   });
 
   const onSubmit = async (data) => {
-    console.log(data, files);
     try {
       // form 객체 생성
       const formData = new FormData();
 
       // 공지사항 본문
       formData.append('notice', JSON.stringify(data));
-
+      console.log(data);
       // 첨부파일이 있는 경우
       if (files.length > 0) {
         // 첨부파일 등록
@@ -69,7 +69,6 @@ export default function NoticeForm({ mode = 'create', initialData = null }) {
       }
 
       const { success, message } = await saveNoticeApi(formData);
-      console.log(success, message);
       if (success) {
         enqueueSnackbar(message, { variant: 'success' });
         router.push('/notices');
@@ -120,6 +119,15 @@ export default function NoticeForm({ mode = 'create', initialData = null }) {
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
+        {/* noticeId */}
+        {isEdit && (
+          <Controller
+            name="noticeId"
+            control={control}
+            render={({ field }) => <input type="hidden" {...field} />}
+          />
+        )}
+
         {/* 제목 */}
         <Controller
           name="title"

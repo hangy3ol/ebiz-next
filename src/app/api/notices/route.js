@@ -3,10 +3,12 @@ import { NextResponse } from 'next/server';
 import {
   fetchNoticeList,
   saveNotice,
+  deleteNotice,
 } from '@/features/notices/services/noticeService';
 import { getCurrentUser } from '@/libs/auth/getCurrentUser';
 import { uploadHandler } from '@/utils/uploadHandler';
 
+// 공지사항 목록 조회
 export async function GET() {
   try {
     const { success, result } = await fetchNoticeList();
@@ -33,12 +35,13 @@ export async function GET() {
   }
 }
 
+// 공지사항 저장(등록, 수정)
 export async function POST(request) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
-        { success: false, message: '인증 정보가 없습니다.' },
+        { success: false, message: '인증 정보가 없습니다.', data: null },
         { status: 401 },
       );
     }
@@ -83,6 +86,57 @@ export async function POST(request) {
       {
         success: false,
         message: '공지사항 저장에 실패했습니다.',
+        data: null,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+// 공지사항 삭제
+export async function DELETE(request) {
+  try {
+    // 1. 사용자 인증 확인
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: '인증 정보가 없습니다.', data: null },
+        { status: 401 },
+      );
+    }
+
+    // 2. 요청 본문에서 삭제할 ID 추출
+    const { noticeId } = await request.json();
+    if (!noticeId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '삭제할 공지사항 ID가 필요합니다.',
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
+
+    // 3. 공지사항 삭제 서비스 호출
+    const { success } = await deleteNotice(noticeId);
+
+    if (success) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: '공지사항이 성공적으로 삭제되었습니다.',
+          data: null,
+        },
+        { status: 200 },
+      );
+    }
+  } catch (error) {
+    console.error('공지사항 삭제 중 오류 발생:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: '공지사항 삭제 중 오류가 발생했습니다.',
         data: null,
       },
       { status: 500 },

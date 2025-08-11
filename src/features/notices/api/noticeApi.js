@@ -11,3 +11,11 @@ export async function saveNoticeApi(formData) {
   const response = await axiosClient.post('/api/notices', formData);
   return response.data;
 }
+
+// 공지사항 삭제
+export async function deleteNoticeApi(noticeId) {
+  const response = await axiosClient.delete('/api/notices', {
+    data: { noticeId },
+  });
+  return response.data;
+}
