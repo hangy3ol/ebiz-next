@@ -26,14 +26,9 @@ import { confirm } from '@/utils/confirm';
 import { exportGridToExcel } from '@/utils/exportExcel';
 import { matchEquals, matchIncludes } from '@/utils/filters';
 
-export default function EmployeeList({
-  initialData,
-  initialStatus,
-  initialFilterOptions = {},
-}) {
+export default function EmployeeList({ initialData, filterOptions = {} }) {
   // 상태
   const [rows, setRows] = useState(initialData);
-  const [filterOptions] = useState(initialFilterOptions);
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const [filters, setFilters] = useState({
@@ -81,15 +76,6 @@ export default function EmployeeList({
         matchIncludes(row, filters.keyword, searchableFields),
     );
   }, [rows, filters, searchableFields]);
-
-  // 초기화
-  useEffect(() => {
-    if (!initialStatus) {
-      enqueueSnackbar('직원 목록 조회에 실패했습니다.', {
-        variant: 'error',
-      });
-    }
-  }, [initialStatus, enqueueSnackbar]);
 
   // 재조회
   const loadEmployeeList = useCallback(async () => {
