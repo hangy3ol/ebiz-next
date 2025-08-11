@@ -1,5 +1,5 @@
 import NoticeDetail from '@/features/notices/components/NoticeDetail';
-import { fetchNoticeById } from '@/services/notices/noticeService';
+import { fetchNoticeById } from '@/features/notices/services/noticeService';
 
 export default async function NoticeDetailPage({ params }) {
   const resolvedParams = await params;

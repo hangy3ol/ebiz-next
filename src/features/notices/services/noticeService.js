@@ -61,11 +61,12 @@ export async function fetchNoticeById(params) {
       },
     );
 
-    const attachment = await db.sequelize.query(
+    const files = await db.sequelize.query(
       `
         SELECT
           id,
           original_file_name AS name,
+          file_size,
           'keep' AS action
         FROM ${db.ebiz}.notice_attachments
         WHERE notice_id = :noticeId
@@ -86,7 +87,7 @@ export async function fetchNoticeById(params) {
       success: true,
       result: {
         notice: convertCamelCase(notice),
-        attachment: convertCamelCase(attachment),
+        files: convertCamelCase(files),
       },
     };
   } catch (error) {
