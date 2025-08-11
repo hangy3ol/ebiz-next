@@ -75,6 +75,17 @@ export default function FileUploader({
       }
     },
     onDropRejected: (rejections) => {
+      const hasTooMany = rejections.some((r) =>
+        r.errors.some((err) => err.code === 'too-many-files'),
+      );
+
+      if (hasTooMany) {
+        enqueueSnackbar(`최대 ${maxFiles}개까지 업로드할 수 있습니다.`, {
+          variant: 'error',
+        });
+        return;
+      }
+
       const oversizeFiles = rejections
         .flatMap((r) => r.errors)
         .filter((err) => err.code === 'file-too-large');
