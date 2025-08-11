@@ -30,7 +30,5 @@ export default async function CriteriaPage() {
     filterOptions.jobTitle = JobTitleResult.result;
   }
 
-  console.log('filterOptions: ', filterOptions);
-
   return <CriteriaList initialData={result} filterOptions={filterOptions} />;
 }

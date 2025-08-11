@@ -103,7 +103,7 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
 
   // 그리드 행 원클릭
   const handleRowClick = ({ id, row }) => {
-    // router.push(`/notices/${id}`);
+    router.push(`/hr/evaluations/criteria/${id}`);
   };
 
   return (
@@ -227,6 +227,7 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
               // outliersFactor,
               expand: true,
             }} // 마운트시 열너비 자동조절 옵션
+            onRowClick={handleRowClick}
             slotProps={{
               loadingOverlay: {
                 variant: 'linear-progress',
