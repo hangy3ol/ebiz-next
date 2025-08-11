@@ -3,8 +3,8 @@ import {
   fetchDepartmentOptions,
   fetchPositionOptions,
 } from '@/common/services/codeService';
-import EmployeeList from '@/features/hr/employess/components/EmployeeList';
-import { fetchEmployeeList } from '@/features/hr/employess/services/employeeService';
+import EmployeeList from '@/features/hr/employees/components/EmployeeList';
+import { fetchEmployeeList } from '@/features/hr/employees/services/employeeService';
 
 export default async function EmployeePage() {
   const { success, result } = await fetchEmployeeList({ includeAll: false });

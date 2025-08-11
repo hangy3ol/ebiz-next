@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { fetchEmployeeList } from '@/features/hr/employess/services/employeeService';
+import { fetchEmployeeList } from '@/features/hr/employees/services/employeeService';
 
 // 직원 목록 조회
 export async function GET(req) {

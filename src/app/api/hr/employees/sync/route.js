@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { syncEmployeesFromDis } from '@/features/hr/employess/services/employeeService';
+import { syncEmployeesFromDis } from '@/features/hr/employees/services/employeeService';
 import { getCurrentUser } from '@/libs/auth/getCurrentUser';
 
 export async function POST(req) {

@@ -21,7 +21,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   fetchEmployeeListApi,
   syncEmployeesFromDisApi,
-} from '@/features/hr/employess/api/employeeApi';
+} from '@/features/hr/employees/api/employeeApi';
 import { confirm } from '@/utils/confirm';
 import { exportGridToExcel } from '@/utils/exportExcel';
 import { matchEquals, matchIncludes } from '@/utils/filters';
@@ -35,7 +35,6 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
     office: '',
     department: '',
     position: '',
-    jobType: '',
     keyword: '',
   });
   const [includeAll, setIncludeAll] = useState(false);
@@ -72,10 +71,9 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
   const filteredRows = useMemo(() => {
     return rows.filter(
       (row) =>
-        matchEquals(row.officeName, filters.office) &&
-        matchEquals(row.departmentName, filters.department) &&
-        matchEquals(row.positionName, filters.position) &&
-        matchEquals(row.jobTypeCode, filters.jobType) &&
+        matchEquals(row.officeId, filters.office) &&
+        matchEquals(row.departmentId, filters.department) &&
+        matchEquals(row.positionId, filters.position) &&
         matchIncludes(row, filters.keyword, searchableFields),
     );
   }, [rows, filters, searchableFields]);
@@ -141,7 +139,6 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
       office: '',
       department: '',
       position: '',
-      jobType: '',
       keyword: '',
     });
     setIncludeAll(false);
@@ -234,7 +231,7 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
             >
               <MenuItem value="">전체</MenuItem>
               {filterOptions.office?.map((item) => (
-                <MenuItem key={item.id} value={item.name1}>
+                <MenuItem key={item.id} value={item.id}>
                   {item.name1}
                 </MenuItem>
               ))}
@@ -248,13 +245,16 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
               label="부서"
               size="small"
               onChange={(e) =>
-                setFilters((prev) => ({ ...prev, department: e.target.value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  department: e.target.value,
+                }))
               }
               sx={{ minWidth: 120 }}
             >
               <MenuItem value="">전체</MenuItem>
               {filterOptions.department?.map((item) => (
-                <MenuItem key={item.id} value={item.name1}>
+                <MenuItem key={item.id} value={item.id}>
                   {item.name1}
                 </MenuItem>
               ))}
@@ -268,13 +268,16 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
               label="직위"
               size="small"
               onChange={(e) =>
-                setFilters((prev) => ({ ...prev, position: e.target.value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  position: e.target.value,
+                }))
               }
               sx={{ minWidth: 120 }}
             >
               <MenuItem value="">전체</MenuItem>
               {filterOptions.position?.map((item) => (
-                <MenuItem key={item.id} value={item.name1}>
+                <MenuItem key={item.id} value={item.id}>
                   {item.name1}
                 </MenuItem>
               ))}

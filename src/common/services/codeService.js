@@ -143,6 +143,17 @@ export async function fetchJobTypeOptions(params = {}) {
   }
 }
 
+// EBIZ 코드 - 직군 옵션 조회(영업직, 관리직, 생산직)
+export async function fetchJobGroupOptions(params = {}) {
+  try {
+    const result = await fetchEbizOptions('job_group', [], params);
+    return { success: true, result };
+  } catch (error) {
+    console.error('[fetchJobTypeOptions] 직종 옵션 조회 실패:', error);
+    throw error;
+  }
+}
+
 // EBIZ 코드 - 직책 옵션 조회(팀장, 팀원)
 export async function fetchJobTitleOptions(params = {}) {
   try {
