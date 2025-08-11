@@ -7,7 +7,7 @@ import {
   Button,
   Paper,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Stack,
@@ -123,13 +123,19 @@ export default function NoticeDetail({ initialData }) {
               <List dense>
                 {files.map((file) => {
                   const name = file.name ?? '파일';
-                  const bytes = file.fileSize; // 서버가 보장
+                  const bytes = file.fileSize;
                   const sizeLabel = Number.isFinite(bytes)
                     ? ` (${formatFileSize(bytes)})`
                     : '';
 
                   return (
-                    <ListItem key={file.id} disableGutters>
+                    <ListItemButton
+                      key={file.id}
+                      disableGutters
+                      onClick={() => {
+                        window.location.href = `/api/download?fileId=${file.id}`;
+                      }}
+                    >
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <InsertDriveFile fontSize="small" />
                       </ListItemIcon>
@@ -143,7 +149,7 @@ export default function NoticeDetail({ initialData }) {
                         }
                         secondary={file.mime_type || file.type || undefined}
                       />
-                    </ListItem>
+                    </ListItemButton>
                   );
                 })}
               </List>

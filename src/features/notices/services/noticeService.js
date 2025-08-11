@@ -1,3 +1,4 @@
+import { insertAttachment } from '@/common/services/attachmentService';
 import { db } from '@/libs/db';
 import { convertCamelCase } from '@/utils/caseConverter';
 import { executeWithTransaction } from '@/utils/executeWithTransaction';
@@ -68,8 +69,8 @@ export async function fetchNoticeById(params) {
           original_file_name AS name,
           file_size,
           'keep' AS action
-        FROM ${db.ebiz}.notice_attachments
-        WHERE notice_id = :noticeId
+        FROM ${db.ebiz}.attachments
+        WHERE parent_id = :noticeId
         ORDER BY id ASC;
       `,
       {
@@ -173,9 +174,10 @@ export async function saveNotice(
 
     // 첨부파일 추가
     if (filesMetadata?.length > 0) {
-      await insertNoticeAttachment(
+      await insertAttachment(
         filesMetadata,
         noticeId,
+        'notice',
         executedBy,
         transaction,
       );
