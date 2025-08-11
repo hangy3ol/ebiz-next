@@ -4,7 +4,7 @@ import {
   fetchPositionOptions,
 } from '@/common/services/codeService';
 import EmployeeList from '@/features/hr/employess/components/EmployeeList';
-import { fetchEmployeeList } from '@/services/hr/employees/employeeService';
+import { fetchEmployeeList } from '@/features/hr/employess/services/employeeService';
 
 export default async function EmployeePage() {
   const { success, result } = await fetchEmployeeList({ includeAll: false });
@@ -13,6 +13,7 @@ export default async function EmployeePage() {
     throw new Error();
   }
 
+  // 필터옵션
   const [officeResult, departmentResult, positionResult] = await Promise.all([
     fetchOfficeOptions(),
     fetchDepartmentOptions(),
@@ -26,13 +27,13 @@ export default async function EmployeePage() {
   };
 
   if (officeResult.success) {
-    filterOptions.office = officeResult.data;
+    filterOptions.office = officeResult.result;
   }
   if (departmentResult.success) {
-    filterOptions.department = departmentResult.data;
+    filterOptions.department = departmentResult.result;
   }
   if (positionResult.success) {
-    filterOptions.position = positionResult.data;
+    filterOptions.position = positionResult.result;
   }
 
   return <EmployeeList initialData={result} filterOptions={filterOptions} />;

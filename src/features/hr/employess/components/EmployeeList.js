@@ -11,17 +11,17 @@ import {
   InputLabel,
   Checkbox,
   FormControlLabel,
+  Skeleton,
 } from '@mui/material';
-import NoSsr from '@mui/material/NoSsr';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useSnackbar } from 'notistack';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import {
-  fetchEmployeeListAction,
-  syncEmployeesFromDisAction,
-} from '@/app/actions/hr/employees/employeeAction';
+  fetchEmployeeListApi,
+  syncEmployeesFromDisApi,
+} from '@/features/hr/employess/api/employeeApi';
 import { confirm } from '@/utils/confirm';
 import { exportGridToExcel } from '@/utils/exportExcel';
 import { matchEquals, matchIncludes } from '@/utils/filters';
@@ -30,7 +30,7 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
   // 상태
   const [rows, setRows] = useState(initialData);
   const [loading, setLoading] = useState(false);
-  const { enqueueSnackbar } = useSnackbar();
+  const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState({
     office: '',
     department: '',
@@ -42,6 +42,9 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
 
   // 그리드 api
   const apiRef = useGridApiRef();
+
+  // 훅
+  const { enqueueSnackbar } = useSnackbar();
 
   // 그리드 컬럼
   const columns = useMemo(
@@ -77,11 +80,16 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
     );
   }, [rows, filters, searchableFields]);
 
+  // 마운트
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // 재조회
   const loadEmployeeList = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, success } = await fetchEmployeeListAction({ includeAll });
+      const { data, success } = await fetchEmployeeListApi({ includeAll });
       if (success) {
         setRows(data);
       }
@@ -92,9 +100,14 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
     }
   }, [includeAll, enqueueSnackbar]);
 
+  // 최초 조회시 재조회 수행하지 않도록
   useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+
     loadEmployeeList();
-  }, [loadEmployeeList]);
+  }, [includeAll, mounted, loadEmployeeList]);
 
   // 직원 DIS 동기화
   const handleSync = async () => {
@@ -105,11 +118,10 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
 
     try {
       if (isConfirm) {
-        const { success, message } = await syncEmployeesFromDisAction({
-          executedBy: 'ADMIN',
-        });
+        const { success, message } = await syncEmployeesFromDisApi();
         if (success) {
           handleReset();
+          await loadEmployeeList();
           enqueueSnackbar(message, { variant: 'success' });
         } else {
           enqueueSnackbar(message, { variant: 'error' });
@@ -294,8 +306,9 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
       </Box>
 
       {/* 그리드 */}
-      <NoSsr>
-        <Box sx={{ flex: 1, overflow: 'auto' }}>
+
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        {mounted ? (
           <DataGrid
             apiRef={apiRef}
             rows={filteredRows}
@@ -327,8 +340,10 @@ export default function EmployeeList({ initialData, filterOptions = {} }) {
               },
             }}
           />
-        </Box>
-      </NoSsr>
+        ) : (
+          <Skeleton variant="rounded" height="100%" animation="wave" />
+        )}
+      </Box>
     </Box>
   );
 }

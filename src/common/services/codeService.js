@@ -1,5 +1,4 @@
 import { db } from '@/libs/db';
-import { response } from '@/utils/response';
 
 // DIS 옵션
 export async function fetchDisOptions(mcode, filters = []) {
@@ -19,12 +18,12 @@ export async function fetchDisOptions(mcode, filters = []) {
   sql += ' ORDER BY id ASC;';
 
   try {
-    const raw = await db.sequelize.query(sql, {
+    const result = await db.sequelize.query(sql, {
       replacements: { mcode },
       type: db.sequelize.QueryTypes.SELECT,
     });
 
-    return raw;
+    return result;
   } catch (error) {
     console.error(`[fetchDisOptions] ${mcode} 옵션 조회 실패:`, error);
     throw error;
@@ -35,7 +34,8 @@ export async function fetchDisOptions(mcode, filters = []) {
 export async function fetchPositionOptions(params = {}) {
   try {
     const result = await fetchDisOptions('AH', [], params);
-    return response.ok('직위 옵션 목록을 성공적으로 가져왔습니다.', result);
+    // return response.ok('직위 옵션 목록을 성공적으로 가져왔습니다.', result);
+    return { success: true, result };
   } catch (error) {
     console.error('[fetchPositionOptions] 직위 옵션 조회 실패:', error);
     throw error;
@@ -63,12 +63,12 @@ export async function fetchEbizOptions(codeGroup, filters = [], params = {}) {
   sql += ' ORDER BY id ASC;';
 
   try {
-    const raw = await db.sequelize.query(sql, {
+    const result = await db.sequelize.query(sql, {
       replacements: { codeGroup },
       type: db.sequelize.QueryTypes.SELECT,
     });
 
-    return raw;
+    return result;
   } catch (error) {
     console.error(`[fetchEbizOptions] ${codeGroup} 옵션 조회 실패:`, error);
     throw error;
@@ -88,12 +88,12 @@ export async function fetchOfficeOptions(params = {}) {
   `;
 
   try {
-    const raw = await db.sequelize.query(sql, {
+    const result = await db.sequelize.query(sql, {
       replacements: {},
       type: db.sequelize.QueryTypes.SELECT,
     });
 
-    return response.ok('사업부 옵션 목록을 성공적으로 가져왔습니다.', raw);
+    return { success: true, result };
   } catch (error) {
     console.error('[fetchOfficeOption] 사업부 옵션 조회 실패:', error);
     throw error;
@@ -120,12 +120,12 @@ export async function fetchDepartmentOptions(params = {}) {
   sql += ' ORDER BY id ASC;';
 
   try {
-    const raw = await db.sequelize.query(sql, {
+    const result = await db.sequelize.query(sql, {
       replacements: { officeId },
       type: db.sequelize.QueryTypes.SELECT,
     });
 
-    return response.ok('부서 옵션 목록을 성공적으로 가져왔습니다.', raw);
+    return { success: true, result };
   } catch (error) {
     console.error('[fetchDepartmentOptions] 부서 옵션 조회 실패:', error);
     throw error;
@@ -136,7 +136,7 @@ export async function fetchDepartmentOptions(params = {}) {
 export async function fetchJobTypeOptions(params = {}) {
   try {
     const result = await fetchEbizOptions('job_type', [], params);
-    return response.ok('직종 옵션 목록을 성공적으로 가져왔습니다.', result);
+    return { success: true, result };
   } catch (error) {
     console.error('[fetchJobTypeOptions] 직종 옵션 조회 실패:', error);
     throw error;
@@ -147,7 +147,7 @@ export async function fetchJobTypeOptions(params = {}) {
 export async function fetchJobTitleOptions(params = {}) {
   try {
     const result = await fetchEbizOptions('job_title', [], params);
-    return response.ok('직책 옵션 목록을 성공적으로 가져왔습니다.', result);
+    return { success: true, result };
   } catch (error) {
     console.error('[fetchJobTitleOptions] 직책 옵션 조회 실패:', error);
     throw error;
@@ -173,10 +173,7 @@ export async function fetchEvaluationYearOptions(params = {}) {
     // 연도 옵션 생성
     const result = formatYearOption(raw, params);
 
-    return response.ok(
-      '인사평가 평가귀속연도 옵션 목록을 성공적으로 가져왔습니다.',
-      result,
-    );
+    return { success: true, result };
   } catch (error) {
     console.error(
       '[fetchEvaluationYearOptions] 인사평가 평가귀속연도 옵션 조회 실패:',
@@ -190,10 +187,7 @@ export async function fetchEvaluationYearOptions(params = {}) {
 export async function fetchEvaluationStatusOptions(params = {}) {
   try {
     const result = await fetchEbizOptions('evaluation_status', [], params);
-    return response.ok(
-      '인사평가 진행상태 옵션 목록을 성공적으로 가져왔습니다.',
-      result,
-    );
+    return { success: true, result };
   } catch (error) {
     console.error(
       '[fetchEvaluationStatusOptions] 인사평가 진행상태 옵션 조회 실패:',

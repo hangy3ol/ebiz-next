@@ -11,7 +11,6 @@ import {
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
-import { useSnackbar } from 'notistack';
 import { useState, useEffect, useMemo } from 'react';
 
 import { matchIncludes } from '@/utils/filters';
@@ -27,7 +26,6 @@ export default function NoticeList({ initialData }) {
   // 훅
   const router = useRouter();
   const apiRef = useGridApiRef();
-  const { enqueueSnackbar } = useSnackbar();
 
   // 그리드 컬럼
   const columns = useMemo(

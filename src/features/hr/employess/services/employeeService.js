@@ -1,7 +1,6 @@
 import { db } from '@/libs/db';
 import { convertCamelCase } from '@/utils/caseConverter';
 import { executeWithTransaction } from '@/utils/executeWithTransaction';
-import { response } from '@/utils/response';
 
 // 직원목록 조회
 export async function fetchEmployeeList(params) {
@@ -86,10 +85,7 @@ export async function fetchEmployeeList(params) {
       type: db.sequelize.QueryTypes.SELECT,
     });
 
-    return response.ok(
-      '직원 목록을 성공적으로 조회하였습니다.',
-      convertCamelCase(raw),
-    );
+    return { success: true, result: convertCamelCase(raw) };
   } catch (error) {
     console.error('[fetchEmployeeList] 직원 목록 조회 실패:', error);
     throw error;
@@ -225,7 +221,7 @@ export async function syncEmployeesFromDis(params, transaction = null) {
         },
       );
 
-      return response.ok('직원 정보를 성공적으로 동기화하였습니다.', {});
+      return { success: true };
     } catch (error) {
       console.error('[syncEmployeeFromDis] 직원 정보 동기화 실패:', error);
       throw error;
