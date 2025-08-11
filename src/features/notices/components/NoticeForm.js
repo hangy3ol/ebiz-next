@@ -21,7 +21,7 @@ import { noticeSchema } from '@/features/notices/schemas/noticeSchema';
 export default function NoticeForm({ mode = 'create', initialData = null }) {
   const isEdit = mode === 'edit';
 
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState(initialData?.files || []);
 
   // 훅
   const router = useRouter();
@@ -102,7 +102,7 @@ export default function NoticeForm({ mode = 'create', initialData = null }) {
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button variant="text">취소</Button>
           <Button variant="contained" onClick={handleSubmit(onSubmit)}>
-            {isEdit ? '수정 저장' : '등록'}
+            {isEdit ? '수정' : '등록'}
           </Button>
         </Box>
       </Box>

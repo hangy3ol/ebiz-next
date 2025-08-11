@@ -24,6 +24,11 @@ export default function NoticeDetail({ initialData }) {
   // 훅
   const router = useRouter();
 
+  // 수정 페이지로 이동하는 핸들러 함수
+  const handleEdit = () => {
+    router.push(`/notices/${notice.noticeId}/edit`);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 헤더 */}
@@ -73,9 +78,10 @@ export default function NoticeDetail({ initialData }) {
 
           {/* 수정, 삭제 버튼 그룹 */}
           <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-            <Button variant="contained" disabled>
+            <Button variant="contained" onClick={handleEdit}>
               수정
             </Button>
+
             <Button variant="outlined" color="error" disabled>
               삭제
             </Button>
@@ -123,7 +129,7 @@ export default function NoticeDetail({ initialData }) {
               <List dense>
                 {files.map((file) => {
                   const name = file.name ?? '파일';
-                  const bytes = file.fileSize;
+                  const bytes = file.size;
                   const sizeLabel = Number.isFinite(bytes)
                     ? ` (${formatFileSize(bytes)})`
                     : '';
@@ -147,7 +153,6 @@ export default function NoticeDetail({ initialData }) {
                             {sizeLabel}
                           </Typography>
                         }
-                        secondary={file.mime_type || file.type || undefined}
                       />
                     </ListItemButton>
                   );

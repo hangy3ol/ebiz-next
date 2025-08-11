@@ -36,7 +36,7 @@ export async function GET(req) {
     const fullFilePath = path.join(
       process.cwd(),
       UPLOAD_BASE_DIR,
-      fileMetadata.filePath,
+      fileMetadata.path,
     );
     const originalFileName = fileMetadata.name; // 다운로드될 파일명
 
@@ -53,7 +53,7 @@ export async function GET(req) {
 
     const headers = new Headers(); // 응답 헤더 설정
     headers.set('Content-Type', fileMetadata.mimeType); // 파일의 MIME 타입 설정
-    headers.set('Content-Length', fileMetadata.fileSize); // 파일 크기 설정
+    headers.set('Content-Length', fileMetadata.size); // 파일 크기 설정
     headers.set(
       // 다운로드 파일명 설정
       'Content-Disposition',

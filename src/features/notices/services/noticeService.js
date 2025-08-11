@@ -67,7 +67,7 @@ export async function fetchNoticeById(params) {
         SELECT
           id,
           original_file_name AS name,
-          file_size,
+          size,
           'keep' AS action
         FROM ${db.ebiz}.attachments
         WHERE parent_id = :noticeId

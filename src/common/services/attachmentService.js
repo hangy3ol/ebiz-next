@@ -9,9 +9,9 @@ export async function getAttachmentById(fileId) {
       SELECT
         id,
         original_file_name AS name,
-        file_path AS filePath,
+        path,
         mime_type AS mime_type,
-        file_size AS file_size
+        size
       FROM ${db.ebiz}.attachments
       WHERE id = :fileId;
     `;
@@ -48,7 +48,7 @@ export async function insertAttachment(
       // 새로운 attachments 테이블 컬럼에 맞게 VALUES 구문 수정
       values.push(`(
         :parentType${index}, :parentId${index}, :originalFileName${index}, :storedFileName${index},
-        :filePath${index}, :mimeType${index}, :fileExtension${index}, :fileSize${index}, :createdBy${index}
+        :path${index}, :mimeType${index}, :extension${index}, :size${index}, :createdBy${index}
       )`);
 
       // parentType과 parentId를 replacements 객체에 추가
@@ -56,18 +56,18 @@ export async function insertAttachment(
       replacements[`parentId${index}`] = parentId;
       replacements[`originalFileName${index}`] = metadata.originalFileName;
       replacements[`storedFileName${index}`] = metadata.storedFileName;
-      replacements[`filePath${index}`] = metadata.filePath;
+      replacements[`path${index}`] = metadata.path;
       replacements[`mimeType${index}`] = metadata.mimeType;
-      replacements[`fileExtension${index}`] = metadata.fileExtension;
-      replacements[`fileSize${index}`] = metadata.fileSize;
+      replacements[`extension${index}`] = metadata.extension;
+      replacements[`size${index}`] = metadata.size;
       replacements[`createdBy${index}`] = executedBy;
     });
 
     // 테이블명과 컬럼 목록을 새로운 스키마에 맞게 변경
     const query = `
       INSERT INTO ${db.ebiz}.attachments (
-        parent_type, parent_id, original_file_name, stored_file_name, file_path,
-        mime_type, file_extension, file_size, created_by
+        parent_type, parent_id, original_file_name, stored_file_name, path,
+        mime_type, extension, size, created_by
       ) VALUES ${values.join(', ')};
     `;
 
