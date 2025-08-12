@@ -187,8 +187,6 @@ export async function fetchCriteriaById(criteriaMasterId, copyMode) {
     }
 
     // 4) 정렬
-    const sortBy = (a, b) =>
-      Number(a.sortOrder || 0) - Number(b.sortOrder || 0);
     const tree = Array.from(lv1Map.values())
       // lv1 계층
       .map((lv1) => {

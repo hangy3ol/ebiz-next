@@ -32,35 +32,6 @@ export async function createSession(payload) {
   });
 }
 
-// 세션 쿠키 갱신
-export async function updateSession(externalCookies = null) {
-  const cookieStore = externalCookies || (await cookies());
-  const token = cookieStore.get('session')?.value;
-
-  // 토큰이 없으면 종료
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const payload = await jwtVerify(token, secret);
-    const { exp, iat, ...data } = payload;
-
-    const newToken = await signJWT(data);
-
-    cookieStore.set('session', newToken, {
-      httpOnly: true,
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30일
-    });
-
-    return true;
-  } catch (err) {
-    console.error('[updateSession] 실패:', err);
-    return null;
-  }
-}
-
 // 세션 쿠키 삭제
 export async function deleteSession() {
   const cookieStore = await cookies();
