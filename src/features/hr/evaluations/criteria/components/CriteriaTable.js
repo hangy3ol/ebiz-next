@@ -134,6 +134,7 @@ export default function CriteriaTable({
                     <br />
                     [총계: {fmtPct(lv1.totalRatio)}%]
                   </TableCell>
+
                   <TableCell colSpan={3} align="center">
                     <Typography color="text.secondary">
                       평가항목/지표가 없습니다.
@@ -158,11 +159,13 @@ export default function CriteriaTable({
                         [총계: {fmtPct(lv1.totalRatio)}%]
                       </TableCell>
                     )}
+
                     <TableCell rowSpan={1}>
                       {lv2.name}
                       <br />
                       [소계: {fmtPct(lv2.totalRatio)}%]
                     </TableCell>
+
                     <TableCell colSpan={2} align="center">
                       <Typography color="text.secondary">
                         평가지표가 없습니다.
@@ -182,6 +185,7 @@ export default function CriteriaTable({
                       [총계: {fmtPct(lv1.totalRatio)}%]
                     </TableCell>
                   )}
+
                   {lv3Idx === 0 && (
                     <TableCell rowSpan={lv2.rowSpan}>
                       {lv2.name}
@@ -189,7 +193,9 @@ export default function CriteriaTable({
                       [소계: {fmtPct(lv2.totalRatio)}%]
                     </TableCell>
                   )}
+
                   <TableCell>{lv3.name}</TableCell>
+
                   <TableCell align="right">{fmtPct(lv3.ratio)}</TableCell>
                 </TableRow>
               ));

@@ -78,7 +78,7 @@ export default function CriteriaDetail({ initialData }) {
 
         {/* 본문 */}
         <Paper variant="outlined" sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-          <CriteriaTable detail={detail} />
+          <CriteriaTable detail={detail} containerSx={{ maxHeight: '100%' }} />
         </Paper>
       </Box>
     </Box>
