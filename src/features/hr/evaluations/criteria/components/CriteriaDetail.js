@@ -1,18 +1,6 @@
 'use client';
 
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material';
+import { Box, Typography, Button, Paper, Stack } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
 import CriteriaTable from '@/features/hr/evaluations/criteria/components/CriteriaTable';
