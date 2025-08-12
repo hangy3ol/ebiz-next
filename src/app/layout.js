@@ -2,9 +2,9 @@ import './globals.css';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import localFont from 'next/font/local';
 
-import ConfirmDialog from '@/components/ConfirmDialog';
-import NotistackProvider from '@/components/NotistackProvider';
-import ThemeProvider from '@/theme/ThemeProvider';
+import ConfirmDialog from '@/common/components/ConfirmDialog';
+import NotistackProvider from '@/common/components/NotistackProvider';
+import ThemeProvider from '@/common/theme/ThemeProvider';
 
 // Pretendard 폰트 정의
 const pretendard = localFont({

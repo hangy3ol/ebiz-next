@@ -14,7 +14,7 @@ import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
-import FileUploader from '@/components/FileUploader';
+import FileUploader from '@/common/components/FileUploader';
 import { saveNoticeApi } from '@/features/notices/api/noticeApi';
 import { noticeSchema } from '@/features/notices/schemas/noticeSchema';
 

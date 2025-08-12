@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-import ThemeToggleButton from '@/components/ThemeToggleButton';
+import ThemeToggleButton from '@/common/components/ThemeToggleButton';
 import UserMenu from '@/features/auth/components/UserMenu';
 
 export default function AppLayout({ children }) {

@@ -1,6 +1,6 @@
 import { db } from '@/libs/db';
-import { convertCamelCase } from '@/utils/caseConverter';
-import { executeWithTransaction } from '@/utils/executeWithTransaction';
+import { convertCamelCase } from '@/common/utils/caseConverter';
+import { executeWithTransaction } from '@/common/utils/executeWithTransaction';
 
 // 직원목록 조회
 export async function fetchEmployeeList(params) {

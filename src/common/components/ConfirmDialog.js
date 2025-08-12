@@ -9,7 +9,7 @@ import {
   Button,
 } from '@mui/material';
 
-import { useConfirmStore } from '@/stores/useConfirmStore';
+import { useConfirmStore } from '@/common/stores/useConfirmStore';
 
 export default function ConfirmDialog() {
   const { open, title, content, confirm, cancel } = useConfirmStore();

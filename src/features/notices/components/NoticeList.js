@@ -13,7 +13,7 @@ import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 
-import { matchIncludes } from '@/utils/filters';
+import { matchIncludes } from '@/common/utils/filters';
 
 export default function NoticeList({ initialData }) {
   // 상태

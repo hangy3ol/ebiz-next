@@ -16,10 +16,10 @@ import {
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 
+import { confirm } from '@/common/utils/confirm';
+import { formatFileSize } from '@/common/utils/fileUtils';
+import { formatDate } from '@/common/utils/formatDate';
 import { deleteNoticeApi } from '@/features/notices/api/noticeApi';
-import { confirm } from '@/utils/confirm';
-import { formatFileSize } from '@/utils/fileUtils';
-import { formatDate } from '@/utils/formatDate';
 
 export default function NoticeDetail({ initialData }) {
   const { notice, files } = initialData;
@@ -97,10 +97,7 @@ export default function NoticeDetail({ initialData }) {
             alignItems: 'center',
           }}
         >
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 'bold', flexShrink: 1, mr: 1 }}
-          >
+          <Typography variant="h5" sx={{ flexShrink: 1, mr: 1 }}>
             {notice.title}
           </Typography>
 

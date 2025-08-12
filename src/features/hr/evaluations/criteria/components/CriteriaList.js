@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useState, useEffect, useMemo } from 'react';
 
-import { matchEquals, matchIncludes } from '@/utils/filters';
+import { matchEquals, matchIncludes } from '@/common/utils/filters';
 
 export default function CriteriaList({ initialData, filterOptions = {} }) {
   // 상태

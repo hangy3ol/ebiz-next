@@ -22,9 +22,9 @@ import {
   fetchEmployeeListApi,
   syncEmployeesFromDisApi,
 } from '@/features/hr/employees/api/employeeApi';
-import { confirm } from '@/utils/confirm';
-import { exportGridToExcel } from '@/utils/exportExcel';
-import { matchEquals, matchIncludes } from '@/utils/filters';
+import { confirm } from '@/common/utils/confirm';
+import { exportGridToExcel } from '@/common/utils/exportExcel';
+import { matchEquals, matchIncludes } from '@/common/utils/filters';
 
 export default function EmployeeList({ initialData, filterOptions = {} }) {
   // 상태

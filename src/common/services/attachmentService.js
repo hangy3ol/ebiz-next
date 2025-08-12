@@ -2,9 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import { db } from '@/libs/db';
-import { convertCamelCase } from '@/utils/caseConverter';
-import { executeWithTransaction } from '@/utils/executeWithTransaction';
-import removeEmptyDir from '@/utils/removeEmptyDir';
+import { convertCamelCase } from '@/common/utils/caseConverter';
+import { executeWithTransaction } from '@/common/utils/executeWithTransaction';
+import removeEmptyDir from '@/common/utils/removeEmptyDir';
 
 // 첨부파일 단건 조회
 export async function getAttachmentById(fileId) {

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
+import { updatePasswordServerSchema } from '@/features/auth/schemas/updatePasswordSchema';
 import { updatePassword } from '@/features/auth/services/authService';
 import { getCurrentUser } from '@/libs/auth/getCurrentUser';
-import { updatePasswordServerSchema } from '@/validations/updatePasswordSchema';
 
 export async function POST(req) {
   try {

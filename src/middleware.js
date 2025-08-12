@@ -20,7 +20,7 @@ export async function middleware(request) {
     const expiresAt = payload.exp * 1000;
     const THRESHOLD = 1000 * 60 * 60 * 24 * 15; // 15일
     const remaining = expiresAt - Date.now();
-
+    console.log('remaining: ', remaining);
     if (remaining < THRESHOLD) {
       await updateSession(response.cookies);
       console.log('[middleware] session refreshed:', payload?.userId);

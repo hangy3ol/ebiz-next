@@ -4,7 +4,7 @@
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 
-import { theme } from '@/theme/theme';
+import { theme } from '@/common/theme/theme';
 
 export default function ThemeProvider({ children }) {
   return (

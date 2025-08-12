@@ -15,7 +15,7 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
 import { updatePasswordApi } from '@/features/auth/api/authApi';
-import { updatePasswordSchema } from '@/validations/updatePasswordSchema';
+import { updatePasswordSchema } from '@/features/auth/schemas/updatePasswordSchema';
 
 export default function UserPasswordDialog({ open, onClose }) {
   const [loading, setLoading] = useState(false);

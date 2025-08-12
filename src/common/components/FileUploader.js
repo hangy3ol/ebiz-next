@@ -18,7 +18,7 @@ import {
   isBlockedExtension,
   formatFileSize,
   triggerFileDownload,
-} from '@/utils/fileUtils';
+} from '@/common/utils/fileUtils';
 
 export default function FileUploader({
   files = [],

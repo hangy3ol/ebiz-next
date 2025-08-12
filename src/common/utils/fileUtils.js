@@ -17,7 +17,7 @@ export function triggerFileDownload(rawData, fileName) {
 }
 
 // 공통 유틸: 파일 이름의 확장자가 금지 목록에 포함되어 있는지 확인하는 함수
-import { BLOCKED_EXTENSIONS } from '@/constants/blockedExtensions';
+import { BLOCKED_EXTENSIONS } from '@/common/constants/blockedExtensions';
 
 export function isBlockedExtension(fileName = '') {
   // 파일명에서 마지막 점(.)의 위치를 찾음 (확장자 시작 위치)
