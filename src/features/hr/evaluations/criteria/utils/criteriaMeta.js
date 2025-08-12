@@ -1,5 +1,3 @@
-// features/hr/evaluation/criteria/utils/criteriaMeta.js
-
 // detail 트리에 파생 메타(rowSpan, totalRatio)를 "최초 1회 전면" 계산해 부착합니다.
 export function computeDetailMeta(detail = [], decimals = 2) {
   const pow = Math.pow(10, decimals);

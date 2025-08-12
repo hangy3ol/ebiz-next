@@ -145,8 +145,14 @@ export async function fetchJobTypeOptions(params = {}) {
 
 // EBIZ 코드 - 직군 옵션 조회(영업직, 관리직, 생산직)
 export async function fetchJobGroupOptions(params = {}) {
+  const filter = [];
+
+  if (params.mode === 'evaluation') {
+    filter.push(`AND code IN ("01", "02")`);
+  }
+
   try {
-    const result = await fetchEbizOptions('job_group', [], params);
+    const result = await fetchEbizOptions('job_group', filter, params);
     return { success: true, result };
   } catch (error) {
     console.error('[fetchJobTypeOptions] 직종 옵션 조회 실패:', error);

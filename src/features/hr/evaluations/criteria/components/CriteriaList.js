@@ -99,7 +99,9 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
   };
 
   // 등록
-  const createCriteria = async () => {};
+  const createCriteria = async () => {
+    router.push(`/hr/evaluations/criteria/new`);
+  };
 
   // 그리드 행 원클릭
   const handleRowClick = ({ id, row }) => {
