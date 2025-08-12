@@ -54,26 +54,10 @@ export default function CriteriaPanel({
       {/* 구분(Lv1) 폼 */}
       {(isAdd || isEdit) && (
         <Stack spacing={2}>
-          {/* 타이틀 + (편집 시) 삭제 버튼 */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography variant="subtitle2">
-              {isEdit ? '구분 편집' : '구분 추가'}
-            </Typography>
-            {isEdit && (
-              <Button
-                size="small"
-                color="error"
-                variant="text"
-                onClick={onDeleteLv1}
-              >
-                삭제
-              </Button>
-            )}
-          </Stack>
+          {/* 타이틀만 표시 (삭제 버튼은 푸터로 이동) */}
+          <Typography variant="subtitle2">
+            {isEdit ? '구분 편집' : '구분 추가'}
+          </Typography>
 
           <TextField
             label="구분명"
@@ -114,14 +98,26 @@ export default function CriteriaPanel({
             helperText={lv1Errors.sortOrder}
           />
 
-          {/* 푸터: 취소/저장만 노출 */}
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
+          {/* 푸터: 좌측 취소, 우측 [삭제(편집시에만), 저장] */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <Button variant="outlined" color="inherit" onClick={onCancel}>
               취소
             </Button>
-            <Button variant="contained" onClick={onSaveLv1}>
-              {isEdit ? '수정' : '추가'}
-            </Button>
+
+            <Stack direction="row" spacing={1}>
+              {isEdit && (
+                <Button variant="outlined" color="error" onClick={onDeleteLv1}>
+                  삭제
+                </Button>
+              )}
+              <Button variant="contained" onClick={onSaveLv1}>
+                {isEdit ? '수정' : '추가'}
+              </Button>
+            </Stack>
           </Stack>
         </Stack>
       )}
