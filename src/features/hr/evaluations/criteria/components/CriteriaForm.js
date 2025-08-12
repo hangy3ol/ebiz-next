@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 
 import CriteriaTable from '@/features/hr/evaluations/criteria/components/CriteriaTable';
 
-export default function CriteriaFormPage({ selectOptions }) {
+export default function CriteriaForm({ selectOptions }) {
   const router = useRouter();
 
   // 옵션
