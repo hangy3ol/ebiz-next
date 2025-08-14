@@ -26,11 +26,16 @@ import {
   initialCriteriaState,
 } from '@/features/hr/evaluations/criteria/hooks/criteriaReducer';
 
-export default function CriteriaForm({ selectOptions }) {
+export default function CriteriaForm({
+  mode = 'create',
+  initialData = null,
+  selectOptions,
+}) {
   const router = useRouter();
-
+  const isEdit = mode === 'edit';
   const { year = [], jobGroup = [], jobTitle = [] } = selectOptions || {};
 
+  const [criteriaMasterId, setCriteriaMasterId] = useState(null);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedJobGroup, setSelectedJobGroup] = useState('');
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
@@ -44,12 +49,33 @@ export default function CriteriaForm({ selectOptions }) {
   const [dialogMode, setDialogMode] = useState('add');
   const [editingItem, setEditingItem] = useState(null);
 
-  // 훅
   const { enqueueSnackbar } = useSnackbar();
 
-  // '저장' 버튼 활성화 여부 결정
-  const isSaveDisabled =
-    !selectedYear || !selectedJobGroup || !selectedJobTitle;
+  useEffect(() => {
+    if (isEdit && initialData) {
+      const { master, detail: detailData } = initialData;
+
+      setCriteriaMasterId(master.criteriaMasterId);
+      setTitle(master.title);
+      setRemark(master.remark);
+      setSelectedJobGroup(master.jobGroupCode);
+      setSelectedJobTitle(master.jobTitleCode);
+
+      const yearOption = year.find((y) => y.name1 === master.evaluationYear);
+      if (yearOption) {
+        setSelectedYear(yearOption.id);
+      }
+
+      dispatch({
+        type: ACTION_TYPES.KEEP,
+        payload: detailData,
+      });
+    }
+  }, [isEdit, initialData, year]);
+
+  const isSaveDisabled = isEdit
+    ? false
+    : !selectedYear || !selectedJobGroup || !selectedJobTitle;
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
@@ -105,14 +131,16 @@ export default function CriteriaForm({ selectOptions }) {
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
   useEffect(() => {
-    if (!selectedYear || !selectedJobGroup || !selectedJobTitle) {
-      setTitle('');
-      return;
+    if (!isEdit) {
+      if (!selectedYear || !selectedJobGroup || !selectedJobTitle) {
+        setTitle('');
+        return;
+      }
+      const y = getName(year, selectedYear);
+      const g = getName(jobGroup, selectedJobGroup);
+      const t = getName(jobTitle, selectedJobTitle);
+      setTitle(`${y} 귀속 ${g} ${t} 평가기준`);
     }
-    const y = getName(year, selectedYear);
-    const g = getName(jobGroup, selectedJobGroup);
-    const t = getName(jobTitle, selectedJobTitle);
-    setTitle(`${y} 귀속 ${g} ${t} 평가기준`);
   }, [
     selectedYear,
     selectedJobGroup,
@@ -120,14 +148,14 @@ export default function CriteriaForm({ selectOptions }) {
     year,
     jobGroup,
     jobTitle,
+    isEdit,
   ]);
 
   const handleSave = async () => {
     try {
       const payload = {
         master: {
-          // 수정 시나리오를 위해서는 페이지 진입 시 masterId를 props로 받아와야 합니다.
-          // criteriaMasterId: criteriaMasterIdFromProps || null,
+          criteriaMasterId,
           evaluationYear: year.find((y) => y.id === selectedYear)?.name1,
           jobGroupCode: selectedJobGroup,
           jobTitleCode: selectedJobTitle,
@@ -167,7 +195,9 @@ export default function CriteriaForm({ selectOptions }) {
           mb: 2,
         }}
       >
-        <Typography variant="h4">평가 기준 등록</Typography>
+        <Typography variant="h4">
+          {isEdit ? '평가 기준 수정' : '평가 기준 등록'}
+        </Typography>
         <Stack direction="row" gap={1}>
           <Button
             variant="text"
@@ -210,7 +240,7 @@ export default function CriteriaForm({ selectOptions }) {
             spacing={2}
             sx={{ mb: 2 }}
           >
-            <FormControl size="small" sx={{ minWidth: 140 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }} disabled={isEdit}>
               <InputLabel>연도</InputLabel>
               <Select
                 label="연도"
@@ -225,7 +255,7 @@ export default function CriteriaForm({ selectOptions }) {
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 160 }}>
+            <FormControl size="small" sx={{ minWidth: 160 }} disabled={isEdit}>
               <InputLabel>직군</InputLabel>
               <Select
                 label="직군"
@@ -240,7 +270,7 @@ export default function CriteriaForm({ selectOptions }) {
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 160 }}>
+            <FormControl size="small" sx={{ minWidth: 160 }} disabled={isEdit}>
               <InputLabel>직책</InputLabel>
               <Select
                 label="직책"
@@ -260,7 +290,9 @@ export default function CriteriaForm({ selectOptions }) {
               size="small"
               fullWidth
               value={title}
+              // ⭐️ 제목은 항상 자동생성되므로 readOnly, 수정 모드에서는 비활성화 스타일 적용
               InputProps={{ readOnly: true }}
+              disabled={isEdit}
               placeholder="연도·직군·직책을 모두 선택하세요"
             />
 

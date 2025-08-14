@@ -4,8 +4,18 @@ import {
 } from '@/common/services/codeService';
 import { makeYearOptions } from '@/common/utils/yearOptions';
 import CriteriaForm from '@/features/hr/evaluations/criteria/components/CriteriaForm';
+import { fetchCriteriaById } from '@/features/hr/evaluations/criteria/services/criteriaService';
 
-export default async function NewCriteriaPage() {
+export default async function CriteriaEditPage({ params }) {
+  const resolvedParams = await params;
+  const criteriaMasterId = resolvedParams?.criteriaMasterId;
+
+  const { success, result } = await fetchCriteriaById(criteriaMasterId);
+
+  if (!success) {
+    throw new Error();
+  }
+
   // 선택옵션
   const [yearResult, jobGroupResult, jobTitleResult] = await Promise.all([
     makeYearOptions({
@@ -33,5 +43,11 @@ export default async function NewCriteriaPage() {
     selectOptions.jobTitle = jobTitleResult.result;
   }
 
-  return <CriteriaForm mode="create" selectOptions={selectOptions} />;
+  return (
+    <CriteriaForm
+      mode="edit"
+      initialData={result}
+      selectOptions={selectOptions}
+    />
+  );
 }

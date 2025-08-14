@@ -11,6 +11,11 @@ export default function CriteriaDetail({ initialData }) {
   // 훅
   const router = useRouter();
 
+  // 수정 페이지로 이동하는 핸들러 함수
+  const handleEdit = () => {
+    router.push(`/hr/evaluations/criteria/${master.criteriaMasterId}/edit`);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 헤더 */}
@@ -62,7 +67,10 @@ export default function CriteriaDetail({ initialData }) {
 
           {/* 수정, 삭제 버튼 그룹 */}
           <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-            <Button variant="contained">수정</Button>
+            <Button variant="contained" onClick={handleEdit}>
+              수정
+            </Button>
+
             <Button variant="outlined" color="error">
               삭제
             </Button>
