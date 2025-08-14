@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 
+import { uploadHandler } from '@/common/utils/uploadHandler';
 import {
   fetchNoticeList,
   saveNotice,
   deleteNotice,
 } from '@/features/notices/services/noticeService';
 import { getCurrentUser } from '@/libs/auth/getCurrentUser';
-import { uploadHandler } from '@/common/utils/uploadHandler';
 
 // 공지사항 목록 조회
 export async function GET() {

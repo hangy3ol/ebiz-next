@@ -31,6 +31,7 @@ export default function CriteriaTable({
   detail = { level1: [], level2: [], level3: [] },
   containerSx = { maxHeight: '100%' },
   onCellClick = () => {},
+  isEditable = false,
 }) {
   const rendered = useMemo(() => {
     const lv1Raw = Array.isArray(detail.level1) ? detail.level1 : [];
@@ -90,6 +91,14 @@ export default function CriteriaTable({
     '&:hover': { backgroundColor: 'action.hover' },
   };
 
+  const getCellProps = (level, item) => {
+    if (!isEditable) return {};
+    return {
+      onClick: () => onCellClick(level, item),
+      sx: clickableCellStyle,
+    };
+  };
+
   return (
     <TableContainer sx={containerSx}>
       <Table size="small" stickyHeader>
@@ -119,11 +128,7 @@ export default function CriteriaTable({
             if (lv2List.length === 0) {
               return (
                 <TableRow key={`lv1-${lv1.id}`}>
-                  <TableCell
-                    rowSpan={1}
-                    onClick={() => onCellClick('level1', lv1)}
-                    sx={clickableCellStyle}
-                  >
+                  <TableCell rowSpan={1} {...getCellProps('level1', lv1)}>
                     <Box component="span" fontWeight="bold">
                       {lv1.name}
                     </Box>{' '}
@@ -151,8 +156,7 @@ export default function CriteriaTable({
                     {lv2Idx === 0 && (
                       <TableCell
                         rowSpan={lv1.rowSpan}
-                        onClick={() => onCellClick('level1', lv1)}
-                        sx={clickableCellStyle}
+                        {...getCellProps('level1', lv1)}
                       >
                         <Box component="span" fontWeight="bold">
                           {lv1.name}
@@ -164,11 +168,7 @@ export default function CriteriaTable({
                         </Typography>
                       </TableCell>
                     )}
-                    <TableCell
-                      rowSpan={1}
-                      onClick={() => onCellClick('level2', lv2)}
-                      sx={clickableCellStyle}
-                    >
+                    <TableCell rowSpan={1} {...getCellProps('level2', lv2)}>
                       <Box component="span" fontWeight="bold">
                         {lv2.name}
                       </Box>
@@ -191,8 +191,7 @@ export default function CriteriaTable({
                   {lv2Idx === 0 && lv3Idx === 0 && (
                     <TableCell
                       rowSpan={lv1.rowSpan}
-                      onClick={() => onCellClick('level1', lv1)}
-                      sx={clickableCellStyle}
+                      {...getCellProps('level1', lv1)}
                     >
                       <Box component="span" fontWeight="bold">
                         {lv1.name}
@@ -207,8 +206,7 @@ export default function CriteriaTable({
                   {lv3Idx === 0 && (
                     <TableCell
                       rowSpan={lv2.rowSpan}
-                      onClick={() => onCellClick('level2', lv2)}
-                      sx={clickableCellStyle}
+                      {...getCellProps('level2', lv2)}
                     >
                       <Box component="span" fontWeight="bold">
                         {lv2.name}
@@ -219,17 +217,10 @@ export default function CriteriaTable({
                       </Typography>
                     </TableCell>
                   )}
-                  <TableCell
-                    onClick={() => onCellClick('level3', lv3)}
-                    sx={clickableCellStyle}
-                  >
+                  <TableCell {...getCellProps('level3', lv3)}>
                     {lv3.name}
                   </TableCell>
-                  <TableCell
-                    align="right"
-                    onClick={() => onCellClick('level3', lv3)}
-                    sx={clickableCellStyle}
-                  >
+                  <TableCell align="right" {...getCellProps('level3', lv3)}>
                     {fmtPct(lv3.ratio)}
                   </TableCell>
                 </TableRow>

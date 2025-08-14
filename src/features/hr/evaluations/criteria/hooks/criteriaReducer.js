@@ -15,25 +15,31 @@ export const initialCriteriaState = {
 export function criteriaReducer(state, action) {
   switch (action.type) {
     case ACTION_TYPES.INSERT: {
-      const { level, item: newItemData } = action.payload;
-      const siblings = state[level].filter(
+      // payload에서 level 타입('level1')과 아이템 데이터를 추출합니다.
+      const { level: levelType, item: newItemData } = action.payload;
+
+      const siblings = state[levelType].filter(
         (i) => i.parentId === newItemData.parentId,
       );
       const maxSortOrder = siblings.reduce(
         (max, i) => Math.max(max, Number(i.sortOrder) || 0),
         0,
       );
+
+      // 새로 생성되는 아이템 객체
       const newItem = {
         ...newItemData,
         id: uuidv4(),
         action: 'insert',
+        level: levelType.replace('level', ''), // ⭐️ 'level' 속성 추가
         sortOrder: newItemData.sortOrder
           ? Number(newItemData.sortOrder)
           : maxSortOrder + 1,
       };
+
       return {
         ...state,
-        [level]: [...state[level], newItem],
+        [levelType]: [...state[levelType], newItem],
       };
     }
 

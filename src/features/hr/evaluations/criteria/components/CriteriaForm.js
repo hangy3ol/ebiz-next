@@ -14,8 +14,10 @@ import {
   Typography,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 import { useEffect, useReducer, useState } from 'react';
 
+import { saveCriteriaApi } from '@/features/hr/evaluations/criteria/api/criteriaApi';
 import CriteriaFormDialog from '@/features/hr/evaluations/criteria/components/CriteriaFormDialog';
 import CriteriaTable from '@/features/hr/evaluations/criteria/components/CriteriaTable';
 import {
@@ -41,6 +43,13 @@ export default function CriteriaForm({ selectOptions }) {
   const [dialogType, setDialogType] = useState('');
   const [dialogMode, setDialogMode] = useState('add');
   const [editingItem, setEditingItem] = useState(null);
+
+  // 훅
+  const { enqueueSnackbar } = useSnackbar();
+
+  // '저장' 버튼 활성화 여부 결정
+  const isSaveDisabled =
+    !selectedYear || !selectedJobGroup || !selectedJobTitle;
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
@@ -113,6 +122,41 @@ export default function CriteriaForm({ selectOptions }) {
     jobTitle,
   ]);
 
+  const handleSave = async () => {
+    try {
+      const payload = {
+        master: {
+          // 수정 시나리오를 위해서는 페이지 진입 시 masterId를 props로 받아와야 합니다.
+          // criteriaMasterId: criteriaMasterIdFromProps || null,
+          evaluationYear: year.find((y) => y.id === selectedYear)?.name1,
+          jobGroupCode: selectedJobGroup,
+          jobTitleCode: selectedJobTitle,
+          title,
+          remark,
+        },
+        detail: {
+          level1: detail.level1.filter((item) => item.action !== 'keep'),
+          level2: detail.level2.filter((item) => item.action !== 'keep'),
+          level3: detail.level3.filter((item) => item.action !== 'keep'),
+        },
+      };
+
+      const { success, message } = await saveCriteriaApi(payload);
+
+      if (success) {
+        enqueueSnackbar(message, { variant: 'success' });
+        router.push('/hr/evaluations/criteria');
+      } else {
+        enqueueSnackbar(message || '저장에 실패했습니다.', {
+          variant: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Save failed', error);
+      enqueueSnackbar('저장 중 오류가 발생했습니다.', { variant: 'error' });
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box
@@ -131,7 +175,11 @@ export default function CriteriaForm({ selectOptions }) {
           >
             목록
           </Button>
-          <Button variant="contained" disabled>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={isSaveDisabled}
+          >
             저장
           </Button>
         </Stack>
@@ -255,6 +303,7 @@ export default function CriteriaForm({ selectOptions }) {
             detail={detail}
             containerSx={{ flex: 1, minHeight: 0 }}
             onCellClick={handleOpenEditDialog}
+            isEditable={true}
           />
         </Paper>
       </Box>
