@@ -71,11 +71,12 @@ export default function CriteriaFormDialog({
     }
   }, [open, mode, initialData, dialogType, reset]);
 
+  // ⭐️ [수정된 부분] mode === 'add' 조건을 추가하여 수정 모드에서는 이 로직이 실행되지 않도록 합니다.
   useEffect(() => {
-    if (dialogType === 'level3' && rootId) {
+    if (mode === 'add' && dialogType === 'level3' && rootId) {
       setValue('parentId', '');
     }
-  }, [rootId, setValue, dialogType]);
+  }, [rootId, setValue, dialogType, mode]);
 
   const getTitle = () => {
     const actionText = mode === 'add' ? '추가' : '수정';

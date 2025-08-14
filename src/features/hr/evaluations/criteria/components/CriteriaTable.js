@@ -85,6 +85,11 @@ export default function CriteriaTable({
     };
   }, [detail]);
 
+  const clickableCellStyle = {
+    cursor: 'pointer',
+    '&:hover': { backgroundColor: 'action.hover' },
+  };
+
   return (
     <TableContainer sx={containerSx}>
       <Table size="small" stickyHeader>
@@ -117,10 +122,7 @@ export default function CriteriaTable({
                   <TableCell
                     rowSpan={1}
                     onClick={() => onCellClick('level1', lv1)}
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: 'action.hover' },
-                    }}
+                    sx={clickableCellStyle}
                   >
                     <Box component="span" fontWeight="bold">
                       {lv1.name}
@@ -131,7 +133,6 @@ export default function CriteriaTable({
                       [총계: {fmtPct(lv1.totalRatio)}%]
                     </Typography>
                   </TableCell>
-
                   <TableCell colSpan={3} align="center">
                     <Typography color="text.secondary">
                       평가항목/지표가 없습니다.
@@ -151,10 +152,7 @@ export default function CriteriaTable({
                       <TableCell
                         rowSpan={lv1.rowSpan}
                         onClick={() => onCellClick('level1', lv1)}
-                        sx={{
-                          cursor: 'pointer',
-                          '&:hover': { backgroundColor: 'action.hover' },
-                        }}
+                        sx={clickableCellStyle}
                       >
                         <Box component="span" fontWeight="bold">
                           {lv1.name}
@@ -166,13 +164,19 @@ export default function CriteriaTable({
                         </Typography>
                       </TableCell>
                     )}
-
-                    <TableCell rowSpan={1}>
-                      {lv2.name}
+                    <TableCell
+                      rowSpan={1}
+                      onClick={() => onCellClick('level2', lv2)}
+                      sx={clickableCellStyle}
+                    >
+                      <Box component="span" fontWeight="bold">
+                        {lv2.name}
+                      </Box>
                       <br />
-                      [소계: {fmtPct(lv2.totalRatio)}%]
+                      <Typography variant="caption" color="text.secondary">
+                        [소계: {fmtPct(lv2.totalRatio)}%]
+                      </Typography>
                     </TableCell>
-
                     <TableCell colSpan={2} align="center">
                       <Typography color="text.secondary">
                         평가지표가 없습니다.
@@ -188,10 +192,7 @@ export default function CriteriaTable({
                     <TableCell
                       rowSpan={lv1.rowSpan}
                       onClick={() => onCellClick('level1', lv1)}
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': { backgroundColor: 'action.hover' },
-                      }}
+                      sx={clickableCellStyle}
                     >
                       <Box component="span" fontWeight="bold">
                         {lv1.name}
@@ -203,18 +204,34 @@ export default function CriteriaTable({
                       </Typography>
                     </TableCell>
                   )}
-
                   {lv3Idx === 0 && (
-                    <TableCell rowSpan={lv2.rowSpan}>
-                      {lv2.name}
+                    <TableCell
+                      rowSpan={lv2.rowSpan}
+                      onClick={() => onCellClick('level2', lv2)}
+                      sx={clickableCellStyle}
+                    >
+                      <Box component="span" fontWeight="bold">
+                        {lv2.name}
+                      </Box>
                       <br />
-                      [소계: {fmtPct(lv2.totalRatio)}%]
+                      <Typography variant="caption" color="text.secondary">
+                        [소계: {fmtPct(lv2.totalRatio)}%]
+                      </Typography>
                     </TableCell>
                   )}
-
-                  <TableCell>{lv3.name}</TableCell>
-
-                  <TableCell align="right">{fmtPct(lv3.ratio)}</TableCell>
+                  <TableCell
+                    onClick={() => onCellClick('level3', lv3)}
+                    sx={clickableCellStyle}
+                  >
+                    {lv3.name}
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    onClick={() => onCellClick('level3', lv3)}
+                    sx={clickableCellStyle}
+                  >
+                    {fmtPct(lv3.ratio)}
+                  </TableCell>
                 </TableRow>
               ));
             });
