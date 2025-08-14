@@ -31,6 +31,7 @@ export default function CriteriaFormDialog({
   onClose,
   dialogType,
   onSubmit,
+  onDelete,
   level1Option = [],
   level2Option = [],
   mode = 'add',
@@ -71,7 +72,6 @@ export default function CriteriaFormDialog({
     }
   }, [open, mode, initialData, dialogType, reset]);
 
-  // ⭐️ [수정된 부분] mode === 'add' 조건을 추가하여 수정 모드에서는 이 로직이 실행되지 않도록 합니다.
   useEffect(() => {
     if (mode === 'add' && dialogType === 'level3' && rootId) {
       setValue('parentId', '');
@@ -94,6 +94,13 @@ export default function CriteriaFormDialog({
 
   const handleFormSubmit = (data) => {
     onSubmit(data);
+  };
+
+  const handleDeleteClick = () => {
+    if (onDelete) {
+      onDelete(initialData);
+    }
+    onClose();
   };
 
   const filteredLevel2Options = level2Option.filter(
@@ -307,6 +314,11 @@ export default function CriteriaFormDialog({
         <Button onClick={onClose} variant="text">
           취소
         </Button>
+        {mode === 'edit' && (
+          <Button onClick={handleDeleteClick} color="error">
+            삭제
+          </Button>
+        )}
         <Button
           onClick={handleSubmit(handleFormSubmit)}
           variant="contained"

@@ -1,34 +1,21 @@
 import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Action 타입을 상수로 관리하여 휴먼 에러를 방지합니다.
- */
 export const ACTION_TYPES = {
-  ADD_CRITERIA: 'ADD_CRITERIA',
-  UPDATE_CRITERIA: 'UPDATE_CRITERIA', // 수정 액션 타입
-  // DELETE_CRITERIA: 'DELETE_CRITERIA', // 추후 확장용
+  INSERT: 'INSERT',
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE',
 };
 
-/**
- * detail 상태의 초기값입니다.
- */
 export const initialCriteriaState = {
   level1: [],
   level2: [],
   level3: [],
 };
 
-/**
- * `dispatch`를 통해 호출될 때 상태 변경을 실제로 수행하는 함수입니다.
- * @param {object} state - 현재 상태 (initialCriteriaState 형태)
- * @param {object} action - 상태 변경을 위한 명령 객체 { type, payload }
- * @returns {object} - 변경된 새로운 상태
- */
 export function criteriaReducer(state, action) {
   switch (action.type) {
-    case ACTION_TYPES.ADD_CRITERIA: {
+    case ACTION_TYPES.INSERT: {
       const { level, item: newItemData } = action.payload;
-
       const siblings = state[level].filter(
         (i) => i.parentId === newItemData.parentId,
       );
@@ -36,7 +23,6 @@ export function criteriaReducer(state, action) {
         (max, i) => Math.max(max, Number(i.sortOrder) || 0),
         0,
       );
-
       const newItem = {
         ...newItemData,
         id: uuidv4(),
@@ -45,16 +31,14 @@ export function criteriaReducer(state, action) {
           ? Number(newItemData.sortOrder)
           : maxSortOrder + 1,
       };
-
       return {
         ...state,
         [level]: [...state[level], newItem],
       };
     }
 
-    case ACTION_TYPES.UPDATE_CRITERIA: {
+    case ACTION_TYPES.UPDATE: {
       const { level, item: updatedItem } = action.payload;
-
       return {
         ...state,
         [level]: state[level].map((item) =>
@@ -66,6 +50,38 @@ export function criteriaReducer(state, action) {
             : item,
         ),
       };
+    }
+
+    case ACTION_TYPES.DELETE: {
+      const { level, item: itemToDelete } = action.payload;
+      const newState = JSON.parse(JSON.stringify(state));
+
+      let targetItem = newState[level].find((i) => i.id === itemToDelete.id);
+      if (targetItem) {
+        targetItem.action = 'delete';
+      }
+
+      if (level === 'level1') {
+        const childrenLevel2 = newState.level2.filter(
+          (l2) => l2.parentId === itemToDelete.id,
+        );
+        const childrenLevel2Ids = childrenLevel2.map((l2) => l2.id);
+
+        childrenLevel2.forEach((l2) => (l2.action = 'delete'));
+        newState.level3.forEach((l3) => {
+          if (childrenLevel2Ids.includes(l3.parentId)) {
+            l3.action = 'delete';
+          }
+        });
+      } else if (level === 'level2') {
+        newState.level3.forEach((l3) => {
+          if (l3.parentId === itemToDelete.id) {
+            l3.action = 'delete';
+          }
+        });
+      }
+
+      return newState;
     }
 
     default:

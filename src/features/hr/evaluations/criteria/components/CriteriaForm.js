@@ -65,7 +65,7 @@ export default function CriteriaForm({ selectOptions }) {
   const handleDialogSubmit = (formData) => {
     if (dialogMode === 'add') {
       dispatch({
-        type: ACTION_TYPES.ADD_CRITERIA,
+        type: ACTION_TYPES.INSERT,
         payload: {
           level: dialogType,
           item: formData,
@@ -73,7 +73,7 @@ export default function CriteriaForm({ selectOptions }) {
       });
     } else if (dialogMode === 'edit') {
       dispatch({
-        type: ACTION_TYPES.UPDATE_CRITERIA,
+        type: ACTION_TYPES.UPDATE,
         payload: {
           level: dialogType,
           item: { ...editingItem, ...formData },
@@ -81,6 +81,16 @@ export default function CriteriaForm({ selectOptions }) {
       });
     }
     handleCloseDialog();
+  };
+
+  const handleDeleteItem = (itemToDelete) => {
+    dispatch({
+      type: ACTION_TYPES.DELETE,
+      payload: {
+        level: dialogType,
+        item: itemToDelete,
+      },
+    });
   };
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
@@ -256,8 +266,9 @@ export default function CriteriaForm({ selectOptions }) {
         mode={dialogMode}
         initialData={editingItem}
         onSubmit={handleDialogSubmit}
-        level1Option={detail.level1}
-        level2Option={detail.level2}
+        onDelete={handleDeleteItem}
+        level1Option={detail.level1.filter((item) => item.action !== 'delete')}
+        level2Option={detail.level2.filter((item) => item.action !== 'delete')}
       />
     </Box>
   );
