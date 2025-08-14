@@ -49,7 +49,7 @@ export default function NoticeForm({ mode = 'create', initialData = null }) {
 
       // 공지사항 본문
       formData.append('notice', JSON.stringify(data));
-      console.log(data);
+
       // 첨부파일이 있는 경우
       if (files.length > 0) {
         // 첨부파일 등록

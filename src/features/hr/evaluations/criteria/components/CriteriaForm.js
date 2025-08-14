@@ -290,7 +290,6 @@ export default function CriteriaForm({
               size="small"
               fullWidth
               value={title}
-              // ⭐️ 제목은 항상 자동생성되므로 readOnly, 수정 모드에서는 비활성화 스타일 적용
               InputProps={{ readOnly: true }}
               disabled={isEdit}
               placeholder="연도·직군·직책을 모두 선택하세요"
@@ -303,6 +302,7 @@ export default function CriteriaForm({
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
               placeholder="비고(선택)"
+              disabled={isEdit}
             />
           </Stack>
 

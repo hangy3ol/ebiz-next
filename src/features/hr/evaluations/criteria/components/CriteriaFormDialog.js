@@ -15,7 +15,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText, // ⭐️ FormHelperText 임포트
+  FormHelperText,
 } from '@mui/material';
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -104,7 +104,7 @@ export default function CriteriaFormDialog({
   };
 
   const filteredLevel2Options = level2Option.filter(
-    (opt) => opt.parentId === rootId,
+    (opt) => String(opt.parentId) === String(rootId),
   );
 
   return (

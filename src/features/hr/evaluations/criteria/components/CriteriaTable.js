@@ -65,14 +65,18 @@ export default function CriteriaTable({
       .sort(bySortOrder);
 
     const lv2WithMeta = lv2NormalizedPreMeta.map((lv2) => {
-      const children3 = lv3Normalized.filter((c) => c.parentId === lv2.id);
+      const children3 = lv3Normalized.filter(
+        (c) => String(c.parentId) === String(lv2.id),
+      );
       const rowSpan = children3.length || 1;
       const totalRatio = sum(children3, (c) => c.ratio);
       return { ...lv2, rowSpan, totalRatio };
     });
 
     const lv1WithMeta = lv1NormalizedPreMeta.map((lv1) => {
-      const children2 = lv2WithMeta.filter((c) => c.parentId === lv1.id);
+      const children2 = lv2WithMeta.filter(
+        (c) => String(c.parentId) === String(lv1.id),
+      );
       const rowSpan =
         children2.length > 0 ? sum(children2, (c) => c.rowSpan) : 1;
       const totalRatio = sum(children2, (c) => c.totalRatio);
@@ -99,6 +103,8 @@ export default function CriteriaTable({
     };
   };
 
+  console.log(rendered);
+
   return (
     <TableContainer sx={containerSx}>
       <Table size="small" stickyHeader>
@@ -123,7 +129,9 @@ export default function CriteriaTable({
           )}
 
           {rendered.lv1.map((lv1) => {
-            const lv2List = rendered.lv2.filter((x) => x.parentId === lv1.id);
+            const lv2List = rendered.lv2.filter(
+              (x) => String(x.parentId) === String(lv1.id),
+            );
 
             if (lv2List.length === 0) {
               return (
@@ -131,7 +139,7 @@ export default function CriteriaTable({
                   <TableCell rowSpan={1} {...getCellProps('level1', lv1)}>
                     <Box component="span" fontWeight="bold">
                       {lv1.name}
-                    </Box>{' '}
+                    </Box>
                     ({lv1.score}점)
                     <br />
                     <Typography variant="caption" color="text.secondary">
@@ -148,7 +156,9 @@ export default function CriteriaTable({
             }
 
             return lv2List.flatMap((lv2, lv2Idx) => {
-              const lv3List = rendered.lv3.filter((x) => x.parentId === lv2.id);
+              const lv3List = rendered.lv3.filter(
+                (x) => String(x.parentId) === String(lv2.id),
+              );
 
               if (lv3List.length === 0) {
                 return (

@@ -51,7 +51,8 @@ export function criteriaReducer(state, action) {
         [level]: state[level].map((item) =>
           item.id === updatedItem.id
             ? {
-                ...updatedItem,
+                ...item, // ⭐️ 기존 item을 먼저 전개하여 모든 필드 유지
+                ...updatedItem, // ⭐️ 변경된 데이터로 덮어쓰기
                 action: item.action === 'insert' ? 'insert' : 'update',
               }
             : item,
