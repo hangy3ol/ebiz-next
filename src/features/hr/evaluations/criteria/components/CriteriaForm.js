@@ -2,40 +2,89 @@
 
 import {
   Box,
-  Stack,
-  Typography,
   Button,
-  Paper,
   Divider,
-  TextField,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Paper,
+  Select,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 
+import CriteriaFormDialog from '@/features/hr/evaluations/criteria/components/CriteriaFormDialog';
 import CriteriaTable from '@/features/hr/evaluations/criteria/components/CriteriaTable';
+import {
+  ACTION_TYPES,
+  criteriaReducer,
+  initialCriteriaState,
+} from '@/features/hr/evaluations/criteria/hooks/criteriaReducer';
 
 export default function CriteriaForm({ selectOptions }) {
   const router = useRouter();
 
-  // 옵션
   const { year = [], jobGroup = [], jobTitle = [] } = selectOptions || {};
 
-  // 선택값
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedJobGroup, setSelectedJobGroup] = useState('');
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
   const [title, setTitle] = useState('');
   const [remark, setRemark] = useState('');
 
-  // detail
-  const [detail, setDetail] = useState([]);
+  const [detail, dispatch] = useReducer(criteriaReducer, initialCriteriaState);
 
-  // 제목 자동 생성
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState('');
+  const [dialogMode, setDialogMode] = useState('add');
+  const [editingItem, setEditingItem] = useState(null);
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setDialogType('');
+    setEditingItem(null);
+  };
+
+  const handleOpenAddDialog = (type) => {
+    setDialogMode('add');
+    setDialogType(type);
+    setEditingItem(null);
+    setDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (level, item) => {
+    setDialogMode('edit');
+    setDialogType(level);
+    setEditingItem(item);
+    setDialogOpen(true);
+  };
+
+  const handleDialogSubmit = (formData) => {
+    if (dialogMode === 'add') {
+      dispatch({
+        type: ACTION_TYPES.ADD_CRITERIA,
+        payload: {
+          level: dialogType,
+          item: formData,
+        },
+      });
+    } else if (dialogMode === 'edit') {
+      dispatch({
+        type: ACTION_TYPES.UPDATE_CRITERIA,
+        payload: {
+          level: dialogType,
+          item: { ...editingItem, ...formData },
+        },
+      });
+    }
+    handleCloseDialog();
+  };
+
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
+
   useEffect(() => {
     if (!selectedYear || !selectedJobGroup || !selectedJobTitle) {
       setTitle('');
@@ -56,7 +105,6 @@ export default function CriteriaForm({ selectOptions }) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 헤더 */}
       <Box
         sx={{
           display: 'flex',
@@ -79,9 +127,15 @@ export default function CriteriaForm({ selectOptions }) {
         </Stack>
       </Box>
 
-      {/* 본문 레이아웃 */}
-      <Box sx={{ display: 'flex', gap: 2, minHeight: 0, flex: 1 }}>
-        {/* 좌측 */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2,
+          minHeight: 0,
+          flex: 1,
+          flexDirection: 'column',
+        }}
+      >
         <Paper
           variant="outlined"
           sx={{
@@ -93,13 +147,11 @@ export default function CriteriaForm({ selectOptions }) {
             minWidth: 0,
           }}
         >
-          {/* 상단 마스터 */}
           <Stack
             direction={{ xs: 'column', md: 'row' }}
             spacing={2}
             sx={{ mb: 2 }}
           >
-            {/* 연도 */}
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>연도</InputLabel>
               <Select
@@ -115,7 +167,6 @@ export default function CriteriaForm({ selectOptions }) {
               </Select>
             </FormControl>
 
-            {/* 직군 */}
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직군</InputLabel>
               <Select
@@ -131,7 +182,6 @@ export default function CriteriaForm({ selectOptions }) {
               </Select>
             </FormControl>
 
-            {/* 직책 */}
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직책</InputLabel>
               <Select
@@ -147,7 +197,6 @@ export default function CriteriaForm({ selectOptions }) {
               </Select>
             </FormControl>
 
-            {/* 제목 (읽기전용) */}
             <TextField
               label="제목"
               size="small"
@@ -157,7 +206,6 @@ export default function CriteriaForm({ selectOptions }) {
               placeholder="연도·직군·직책을 모두 선택하세요"
             />
 
-            {/* 비고 */}
             <TextField
               label="비고"
               size="small"
@@ -170,10 +218,47 @@ export default function CriteriaForm({ selectOptions }) {
 
           <Divider sx={{ mb: 2 }} />
 
-          {/* 테이블 */}
-          <CriteriaTable detail={detail} containerSx={{ maxHeight: '100%' }} />
+          <Box
+            sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}
+          >
+            <Button
+              variant="outlined"
+              onClick={() => handleOpenAddDialog('level1')}
+            >
+              구분 추가
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => handleOpenAddDialog('level2')}
+            >
+              평가 항목 추가
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => handleOpenAddDialog('level3')}
+            >
+              평가 지표 추가
+            </Button>
+          </Box>
+
+          <CriteriaTable
+            detail={detail}
+            containerSx={{ flex: 1, minHeight: 0 }}
+            onCellClick={handleOpenEditDialog}
+          />
         </Paper>
       </Box>
+
+      <CriteriaFormDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        dialogType={dialogType}
+        mode={dialogMode}
+        initialData={editingItem}
+        onSubmit={handleDialogSubmit}
+        level1Option={detail.level1}
+        level2Option={detail.level2}
+      />
     </Box>
   );
 }

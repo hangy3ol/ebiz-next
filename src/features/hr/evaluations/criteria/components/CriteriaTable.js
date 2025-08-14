@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -11,7 +12,6 @@ import {
 } from '@mui/material';
 import { useMemo } from 'react';
 
-/* ---------- helpers (module-scope: stable identity) ---------- */
 const toNumber = (v, fallback = 0) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
@@ -27,24 +27,16 @@ const isActive = (x) => x && x.action !== 'delete';
 
 const fmtPct = (n) => (Number.isFinite(n) ? n.toFixed(2) : '0.00');
 
-/**
- * detail: {
- *   level1: [{ id, name, score, sortOrder, action? }],
- *   level2: [{ id, parentId, name, sortOrder, action? }],
- *   level3: [{ id, parentId, rootId, name, ratio, sortOrder, action? }]
- * }
- */
 export default function CriteriaTable({
   detail = { level1: [], level2: [], level3: [] },
   containerSx = { maxHeight: '100%' },
+  onCellClick = () => {},
 }) {
-  // ---- build render model from separated levels ---------------------------
   const rendered = useMemo(() => {
     const lv1Raw = Array.isArray(detail.level1) ? detail.level1 : [];
     const lv2Raw = Array.isArray(detail.level2) ? detail.level2 : [];
     const lv3Raw = Array.isArray(detail.level3) ? detail.level3 : [];
 
-    // 1) 삭제 제외 + 숫자 정규화 + 정렬
     const lv3Normalized = lv3Raw
       .filter(isActive)
       .map((x) => ({
@@ -71,8 +63,6 @@ export default function CriteriaTable({
       }))
       .sort(bySortOrder);
 
-    // 2) 메타 계산
-    //    - level2: rowSpan(자식 lv3 개수, 최소 1), totalRatio(자식 비율 합)
     const lv2WithMeta = lv2NormalizedPreMeta.map((lv2) => {
       const children3 = lv3Normalized.filter((c) => c.parentId === lv2.id);
       const rowSpan = children3.length || 1;
@@ -80,7 +70,6 @@ export default function CriteriaTable({
       return { ...lv2, rowSpan, totalRatio };
     });
 
-    //    - level1: rowSpan(lv2.rowSpan 합, 최소 1), totalRatio(하위 lv3 비율 총합)
     const lv1WithMeta = lv1NormalizedPreMeta.map((lv1) => {
       const children2 = lv2WithMeta.filter((c) => c.parentId === lv1.id);
       const rowSpan =
@@ -96,7 +85,6 @@ export default function CriteriaTable({
     };
   }, [detail]);
 
-  // ---- render -------------------------------------------------------------
   return (
     <TableContainer sx={containerSx}>
       <Table size="small" stickyHeader>
@@ -110,7 +98,6 @@ export default function CriteriaTable({
         </TableHead>
 
         <TableBody>
-          {/* 아무 항목도 없을 때 */}
           {rendered.lv1.length === 0 && (
             <TableRow>
               <TableCell colSpan={4} align="center">
@@ -121,18 +108,28 @@ export default function CriteriaTable({
             </TableRow>
           )}
 
-          {/* lv1 루프 */}
           {rendered.lv1.map((lv1) => {
             const lv2List = rendered.lv2.filter((x) => x.parentId === lv1.id);
 
-            // lv2가 없을 때
             if (lv2List.length === 0) {
               return (
                 <TableRow key={`lv1-${lv1.id}`}>
-                  <TableCell rowSpan={1}>
-                    {lv1.name} ({lv1.score}점)
+                  <TableCell
+                    rowSpan={1}
+                    onClick={() => onCellClick('level1', lv1)}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: 'action.hover' },
+                    }}
+                  >
+                    <Box component="span" fontWeight="bold">
+                      {lv1.name}
+                    </Box>{' '}
+                    ({lv1.score}점)
                     <br />
-                    [총계: {fmtPct(lv1.totalRatio)}%]
+                    <Typography variant="caption" color="text.secondary">
+                      [총계: {fmtPct(lv1.totalRatio)}%]
+                    </Typography>
                   </TableCell>
 
                   <TableCell colSpan={3} align="center">
@@ -144,19 +141,29 @@ export default function CriteriaTable({
               );
             }
 
-            // lv2가 있을 때
             return lv2List.flatMap((lv2, lv2Idx) => {
               const lv3List = rendered.lv3.filter((x) => x.parentId === lv2.id);
 
-              // lv3가 없을 때
               if (lv3List.length === 0) {
                 return (
                   <TableRow key={`lv1-${lv1.id}-lv2-${lv2.id}`}>
                     {lv2Idx === 0 && (
-                      <TableCell rowSpan={lv1.rowSpan}>
-                        {lv1.name} ({lv1.score}점)
+                      <TableCell
+                        rowSpan={lv1.rowSpan}
+                        onClick={() => onCellClick('level1', lv1)}
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': { backgroundColor: 'action.hover' },
+                        }}
+                      >
+                        <Box component="span" fontWeight="bold">
+                          {lv1.name}
+                        </Box>{' '}
+                        ({lv1.score}점)
                         <br />
-                        [총계: {fmtPct(lv1.totalRatio)}%]
+                        <Typography variant="caption" color="text.secondary">
+                          [총계: {fmtPct(lv1.totalRatio)}%]
+                        </Typography>
                       </TableCell>
                     )}
 
@@ -175,14 +182,25 @@ export default function CriteriaTable({
                 );
               }
 
-              // lv3가 있을 때
               return lv3List.map((lv3, lv3Idx) => (
                 <TableRow key={`lv3-${lv3.id}`}>
                   {lv2Idx === 0 && lv3Idx === 0 && (
-                    <TableCell rowSpan={lv1.rowSpan}>
-                      {lv1.name} ({lv1.score}점)
+                    <TableCell
+                      rowSpan={lv1.rowSpan}
+                      onClick={() => onCellClick('level1', lv1)}
+                      sx={{
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'action.hover' },
+                      }}
+                    >
+                      <Box component="span" fontWeight="bold">
+                        {lv1.name}
+                      </Box>{' '}
+                      ({lv1.score}점)
                       <br />
-                      [총계: {fmtPct(lv1.totalRatio)}%]
+                      <Typography variant="caption" color="text.secondary">
+                        [총계: {fmtPct(lv1.totalRatio)}%]
+                      </Typography>
                     </TableCell>
                   )}
 
