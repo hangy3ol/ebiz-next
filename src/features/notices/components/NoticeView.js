@@ -21,7 +21,7 @@ import { formatFileSize } from '@/common/utils/fileUtils';
 import { formatDate } from '@/common/utils/formatDate';
 import { deleteNoticeApi } from '@/features/notices/api/noticeApi';
 
-export default function NoticeDetail({ initialData }) {
+export default function NoticeView({ initialData }) {
   const { notice, files } = initialData;
 
   // 훅

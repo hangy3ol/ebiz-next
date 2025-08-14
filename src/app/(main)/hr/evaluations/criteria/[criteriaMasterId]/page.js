@@ -1,7 +1,7 @@
-import CriteriaDetail from '@/features/hr/evaluations/criteria/components/CriteriaDetail';
+import CriteriaView from '@/features/hr/evaluations/criteria/components/CriteriaView';
 import { fetchCriteriaById } from '@/features/hr/evaluations/criteria/services/criteriaService';
 
-export default async function CriteriaDetailPage({ params }) {
+export default async function CriteriaViewPage({ params }) {
   const resolvedParams = await params;
   const criteriaMasterId = resolvedParams?.criteriaMasterId;
 
@@ -11,5 +11,5 @@ export default async function CriteriaDetailPage({ params }) {
     throw new Error();
   }
 
-  return <CriteriaDetail initialData={result} />;
+  return <CriteriaView initialData={result} />;
 }

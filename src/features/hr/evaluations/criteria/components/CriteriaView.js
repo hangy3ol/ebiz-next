@@ -8,7 +8,7 @@ import { confirm } from '@/common/utils/confirm';
 import { deleteCriteriaApi } from '@/features/hr/evaluations/criteria/api/criteriaApi';
 import CriteriaTable from '@/features/hr/evaluations/criteria/components/CriteriaTable';
 
-export default function CriteriaDetail({ initialData }) {
+export default function CriteriaView({ initialData }) {
   const { master, detail } = initialData;
 
   // 훅

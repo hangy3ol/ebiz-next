@@ -1,7 +1,7 @@
-import NoticeDetail from '@/features/notices/components/NoticeDetail';
+import NoticeView from '@/features/notices/components/NoticeView';
 import { fetchNoticeById } from '@/features/notices/services/noticeService';
 
-export default async function NoticeDetailPage({ params }) {
+export default async function NoticeViewPage({ params }) {
   const resolvedParams = await params;
   const noticeId = resolvedParams?.noticeId;
 
@@ -11,5 +11,5 @@ export default async function NoticeDetailPage({ params }) {
     throw new Error();
   }
 
-  return <NoticeDetail initialData={result} />;
+  return <NoticeView initialData={result} />;
 }
