@@ -7,3 +7,10 @@ export async function saveCriteriaApi(payload) {
   );
   return response.data;
 }
+
+export async function deleteCriteriaApi({ criteriaMasterId }) {
+  const response = await axiosClient.delete('/api/hr/evaluations/criteria', {
+    data: { criteriaMasterId },
+  });
+  return response.data;
+}

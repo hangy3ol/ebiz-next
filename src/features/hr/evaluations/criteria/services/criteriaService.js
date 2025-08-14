@@ -340,7 +340,7 @@ export async function saveCriteria(params, executedBy) {
 
     // 2. Detail 처리
     const idMap = new Map(); // UUID와 실제 DB ID 매핑용
-    console.log();
+
     // 삭제 (역순: L3 -> L2 -> L1)
     for (const item of detail.level3.filter((i) => i.action === 'delete'))
       await deleteCriteriaDetail(item, transaction);
@@ -390,5 +390,38 @@ export async function saveCriteria(params, executedBy) {
     }
 
     return { success: true, result: { masterId } };
+  });
+}
+
+// 평가기준 삭제
+export async function deleteCriteria(criteriaMasterId) {
+  return executeWithTransaction(async (transaction) => {
+    // 1. 자식 테이블인 detail 레코드 먼저 삭제
+    await db.sequelize.query(
+      `
+        DELETE FROM ${db.ebiz}.evaluation_criteria_detail 
+        WHERE master_id = :criteriaMasterId
+      `,
+      {
+        replacements: { criteriaMasterId },
+        type: db.sequelize.QueryTypes.DELETE,
+        transaction,
+      },
+    );
+
+    // 2. 부모 테이블인 master 레코드 삭제
+    await db.sequelize.query(
+      `
+        DELETE FROM ${db.ebiz}.evaluation_criteria_master
+        WHERE id = :criteriaMasterId
+      `,
+      {
+        replacements: { criteriaMasterId },
+        type: db.sequelize.QueryTypes.DELETE,
+        transaction,
+      },
+    );
+
+    return { success: true };
   });
 }

@@ -2,7 +2,10 @@
 
 import { Box, Typography, Button, Paper, Stack } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 
+import { confirm } from '@/common/utils/confirm';
+import { deleteCriteriaApi } from '@/features/hr/evaluations/criteria/api/criteriaApi';
 import CriteriaTable from '@/features/hr/evaluations/criteria/components/CriteriaTable';
 
 export default function CriteriaDetail({ initialData }) {
@@ -10,10 +13,48 @@ export default function CriteriaDetail({ initialData }) {
 
   // 훅
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
-  // 수정 페이지로 이동하는 핸들러 함수
+  // 수정
   const handleEdit = () => {
     router.push(`/hr/evaluations/criteria/${master.criteriaMasterId}/edit`);
+  };
+
+  // 삭제
+  const handleDelete = async () => {
+    if (master.refCount > 0) {
+      enqueueSnackbar(
+        '다른 평가 설정에서 사용 중인 기준이라 삭제할 수 없습니다.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
+    try {
+      const isConfirmed = await confirm({
+        title: '평가 기준 삭제',
+        content:
+          '정말 이 평가 기준을 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.',
+      });
+
+      if (isConfirmed) {
+        const { success, message } = await deleteCriteriaApi({
+          criteriaMasterId: master.criteriaMasterId,
+        });
+
+        if (success) {
+          enqueueSnackbar(message, { variant: 'success' });
+          router.push('/hr/evaluations/criteria');
+        } else {
+          enqueueSnackbar(message || '삭제에 실패했습니다.', {
+            variant: 'error',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Delete failed', error);
+      enqueueSnackbar('삭제 중 오류가 발생했습니다.', { variant: 'error' });
+    }
   };
 
   return (
@@ -71,7 +112,7 @@ export default function CriteriaDetail({ initialData }) {
               수정
             </Button>
 
-            <Button variant="outlined" color="error">
+            <Button variant="outlined" color="error" onClick={handleDelete}>
               삭제
             </Button>
           </Box>

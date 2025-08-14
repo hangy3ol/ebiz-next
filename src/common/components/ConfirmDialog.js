@@ -24,7 +24,9 @@ export default function ConfirmDialog() {
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{content}</DialogContentText>
+        <DialogContentText sx={{ whiteSpace: 'pre-wrap' }}>
+          {content}
+        </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={cancel}>취소</Button>
