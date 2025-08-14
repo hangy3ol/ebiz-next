@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Typography,
   IconButton,
   TextField,
   Stack,
@@ -16,6 +15,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  FormHelperText, // ⭐️ FormHelperText 임포트
 } from '@mui/material';
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -182,9 +182,7 @@ export default function CriteriaFormDialog({
                     ))}
                   </Select>
                   {fieldState.error && (
-                    <Typography variant="caption" color="error">
-                      {fieldState.error.message}
-                    </Typography>
+                    <FormHelperText>{fieldState.error.message}</FormHelperText>
                   )}
                 </FormControl>
               )}
@@ -237,9 +235,7 @@ export default function CriteriaFormDialog({
                     ))}
                   </Select>
                   {fieldState.error && (
-                    <Typography variant="caption" color="error">
-                      {fieldState.error.message}
-                    </Typography>
+                    <FormHelperText>{fieldState.error.message}</FormHelperText>
                   )}
                 </FormControl>
               )}
@@ -258,9 +254,7 @@ export default function CriteriaFormDialog({
                     ))}
                   </Select>
                   {fieldState.error && (
-                    <Typography variant="caption" color="error">
-                      {fieldState.error.message}
-                    </Typography>
+                    <FormHelperText>{fieldState.error.message}</FormHelperText>
                   )}
                 </FormControl>
               )}
