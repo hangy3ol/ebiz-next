@@ -55,7 +55,6 @@ export default function LoginForm() {
         userId,
         password,
       });
-      console.log(success, message, data);
       if (success) {
         setProfile(data);
         enqueueSnackbar(message, { variant: 'success' });
