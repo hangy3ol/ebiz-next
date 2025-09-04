@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
 export const ACTION_TYPES = {
-  KEEP: 'KEEP', // 이름 변경
+  KEEP: 'KEEP',
   INSERT: 'INSERT',
   UPDATE: 'UPDATE',
   DELETE: 'DELETE',
+  REPLACE_ALL: 'REPLACE_ALL',
 };
 
 export const initialCriteriaState = {
@@ -16,7 +17,6 @@ export const initialCriteriaState = {
 export function criteriaReducer(state, action) {
   switch (action.type) {
     case ACTION_TYPES.KEEP: {
-      // 이름 변경
       return action.payload;
     }
 
@@ -51,8 +51,8 @@ export function criteriaReducer(state, action) {
         [level]: state[level].map((item) =>
           item.id === updatedItem.id
             ? {
-                ...item, // ⭐️ 기존 item을 먼저 전개하여 모든 필드 유지
-                ...updatedItem, // ⭐️ 변경된 데이터로 덮어쓰기
+                ...item,
+                ...updatedItem,
                 action: item.action === 'insert' ? 'insert' : 'update',
               }
             : item,
@@ -86,6 +86,50 @@ export function criteriaReducer(state, action) {
         });
       }
       return newState;
+    }
+
+    case ACTION_TYPES.REPLACE_ALL: {
+      const copiedData = action.payload; // 기존 데이터에 'delete' 액션 부여
+
+      const deletedItems = {
+        level1: state.level1.map((item) => ({ ...item, action: 'delete' })),
+        level2: state.level2.map((item) => ({ ...item, action: 'delete' })),
+        level3: state.level3.map((item) => ({ ...item, action: 'delete' })),
+      }; // 복사된 데이터에 'insert' 액션 및 새로운 UUID 부여
+
+      const idMap = new Map();
+      const newLevel1 = copiedData.level1.map((item) => {
+        const newId = uuidv4();
+        idMap.set(item.id, newId);
+        return { ...item, id: newId, action: 'insert' };
+      });
+
+      const newLevel2 = copiedData.level2.map((item) => {
+        const newId = uuidv4();
+        idMap.set(item.id, newId);
+        return {
+          ...item,
+          id: newId,
+          parentId: idMap.get(item.parentId) || item.parentId,
+          action: 'insert',
+        };
+      });
+
+      const newLevel3 = copiedData.level3.map((item) => {
+        const newId = uuidv4();
+        return {
+          ...item,
+          id: newId,
+          parentId: idMap.get(item.parentId) || item.parentId,
+          action: 'insert',
+        };
+      });
+
+      return {
+        level1: [...deletedItems.level1, ...newLevel1],
+        level2: [...deletedItems.level2, ...newLevel2],
+        level3: [...deletedItems.level3, ...newLevel3],
+      };
     }
 
     default:

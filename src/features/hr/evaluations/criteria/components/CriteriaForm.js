@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useState, useCallback } from 'react'; // [추가] useCallback 임포트
 
 import { saveCriteriaApi } from '@/features/hr/evaluations/criteria/api/criteriaApi';
 import CriteriaFormDialog from '@/features/hr/evaluations/criteria/components/CriteriaFormDialog';
@@ -49,7 +49,27 @@ export default function CriteriaForm({
   const [dialogMode, setDialogMode] = useState('add');
   const [editingItem, setEditingItem] = useState(null);
 
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar(); // [추가] 팝업에서 전달된 데이터를 받는 콜백 함수
+
+  // [추가] 팝업에서 전달된 데이터를 받는 콜백 함수
+  const handleCopyCallback = useCallback(
+    (copiedData) => {
+      // REPLACE_ALL 액션을 사용하여 받은 데이터를 전체 상태에 적용
+      dispatch({ type: ACTION_TYPES.REPLACE_ALL, payload: copiedData });
+      enqueueSnackbar('평가 기준이 성공적으로 복사되었습니다.', {
+        variant: 'success',
+      });
+    },
+    [dispatch, enqueueSnackbar],
+  );
+
+  // [추가] 부모 창에 콜백 함수를 노출하고 정리
+  useEffect(() => {
+    window.handleCopyCallback = handleCopyCallback;
+    return () => {
+      delete window.handleCopyCallback;
+    };
+  }, [handleCopyCallback]);
 
   useEffect(() => {
     if (isEdit && initialData) {
@@ -185,6 +205,20 @@ export default function CriteriaForm({
     }
   };
 
+  // [수정] 복사 버튼 클릭 시 팝업 열기 핸들러
+  const handleCopyClick = () => {
+    const popupWidth = 800;
+    const popupHeight = 600;
+    const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+    const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+
+    window.open(
+      `/popup/hr/evaluations/criteria?criteriaMasterId=${criteriaMasterId}`,
+      '_blank',
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
+    );
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box
@@ -205,6 +239,11 @@ export default function CriteriaForm({
           >
             목록
           </Button>
+
+          <Button variant="outlined" onClick={handleCopyClick}>
+            복사
+          </Button>
+
           <Button
             variant="contained"
             onClick={handleSave}
