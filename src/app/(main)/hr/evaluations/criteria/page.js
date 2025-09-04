@@ -14,7 +14,7 @@ export default async function CriteriaPage() {
 
   // 필터옵션
   const [jobGroupResult, JobTitleResult] = await Promise.all([
-    fetchJobGroupOptions(),
+    fetchJobGroupOptions({ mode: 'evaluation' }),
     fetchJobTitleOptions(),
   ]);
 
