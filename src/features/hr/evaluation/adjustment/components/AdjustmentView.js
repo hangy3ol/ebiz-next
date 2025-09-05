@@ -137,12 +137,17 @@ export default function AdjustmentView({ initialData }) {
         </Stack>
 
         {/* [수정] 테이블 컨텐츠 영역 */}
-        <Paper variant="outlined" sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-          <AdjustmentTable label="감점" data={processedData.penalty} />
+        <Paper
+          variant="outlined"
+          sx={{ p: 2, flex: 1, overflow: 'auto', gap: 2 }}
+        >
+          <Stack spacing={2}>
+            <AdjustmentTable label="감점" data={processedData.penalty} />
 
-          <Divider />
+            <Divider />
 
-          <AdjustmentTable label="가점" data={processedData.reward} />
+            <AdjustmentTable label="가점" data={processedData.reward} />
+          </Stack>
         </Paper>
       </Box>
     </Box>

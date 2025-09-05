@@ -11,18 +11,21 @@ import {
   Typography,
 } from '@mui/material';
 
-// 테이블 렌더링 전문 컴포넌트
-function AdjustmentTable({ label, data }) {
+// [수정] isEditable, onRowClick prop 추가
+function AdjustmentTable({
+  label,
+  data,
+  isEditable = false,
+  onRowClick = () => {},
+}) {
   const { level1, level2 } = data;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      {/* 테이블 제목 */}
       <Typography variant="h6" gutterBottom>
         {label}
       </Typography>
 
-      {/* 테이블 */}
       <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
@@ -45,7 +48,6 @@ function AdjustmentTable({ label, data }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {/* level1 데이터가 없을 경우 */}
             {level1.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center">
@@ -56,14 +58,24 @@ function AdjustmentTable({ label, data }) {
               </TableRow>
             )}
 
-            {/* level1 데이터를 순회하며 행 생성 */}
             {level1.map((lv1) => {
               const children = level2.filter((lv2) => lv2.parentId === lv1.id);
 
-              // level2 데이터가 없는 경우
               if (children.length === 0) {
                 return (
-                  <TableRow key={lv1.id}>
+                  // [수정] 행(Row)에 클릭 이벤트 및 스타일 적용
+                  <TableRow
+                    key={lv1.id}
+                    onClick={() => isEditable && onRowClick('level1', lv1)}
+                    sx={{
+                      cursor: isEditable ? 'pointer' : 'default',
+                      '&:hover': {
+                        backgroundColor: isEditable
+                          ? 'action.hover'
+                          : 'transparent',
+                      },
+                    }}
+                  >
                     <TableCell>{lv1.name}</TableCell>
                     <TableCell colSpan={4} align="center">
                       <Typography color="text.secondary">
@@ -74,11 +86,30 @@ function AdjustmentTable({ label, data }) {
                 );
               }
 
-              // level2 데이터가 있는 경우
               return children.map((lv2, index) => (
-                <TableRow key={lv2.id}>
+                // [수정] 행(Row)에 클릭 이벤트 및 스타일 적용
+                <TableRow
+                  key={lv2.id}
+                  onClick={() => isEditable && onRowClick('level2', lv2)}
+                  sx={{
+                    cursor: isEditable ? 'pointer' : 'default',
+                    '&:hover': {
+                      backgroundColor: isEditable
+                        ? 'action.hover'
+                        : 'transparent',
+                    },
+                  }}
+                >
                   {index === 0 && (
-                    <TableCell rowSpan={lv1.rowSpan}>{lv1.name}</TableCell>
+                    <TableCell
+                      rowSpan={lv1.rowSpan}
+                      onClick={(e) => {
+                        e.stopPropagation(); // 하위 요소 클릭 시 이벤트 전파 중단
+                        isEditable && onRowClick('level1', lv1);
+                      }}
+                    >
+                      {lv1.name}
+                    </TableCell>
                   )}
                   <TableCell>{lv2.name}</TableCell>
                   <TableCell align="right">{lv2.score ?? ''}</TableCell>
