@@ -10,235 +10,96 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { useMemo } from 'react';
 
-const toNumber = (v, fallback = 0) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-};
-
-const sum = (arr, pick = (x) => x) =>
-  arr.reduce((acc, x) => acc + toNumber(pick(x), 0), 0);
-
-const bySortOrder = (a, b) =>
-  toNumber(a.sortOrder, 0) - toNumber(b.sortOrder, 0);
-
-const isActive = (x) => x && x.action !== 'delete';
-
-const fmtPct = (n) => (Number.isFinite(n) ? n.toFixed(2) : '0.00');
-
-export default function AdjustmentTable({
-  detail = { level1: [], level2: [], level3: [] },
-  containerSx = { maxHeight: '100%' },
-  onCellClick = () => {},
-  isEditable = false,
-}) {
-  const rendered = useMemo(() => {
-    const lv1Raw = Array.isArray(detail.level1) ? detail.level1 : [];
-    const lv2Raw = Array.isArray(detail.level2) ? detail.level2 : [];
-    const lv3Raw = Array.isArray(detail.level3) ? detail.level3 : [];
-
-    const lv3Normalized = lv3Raw
-      .filter(isActive)
-      .map((x) => ({
-        ...x,
-        ratio: toNumber(x.ratio, 0),
-        sortOrder: toNumber(x.sortOrder, 0),
-      }))
-      .sort(bySortOrder);
-
-    const lv2NormalizedPreMeta = lv2Raw
-      .filter(isActive)
-      .map((x) => ({
-        ...x,
-        sortOrder: toNumber(x.sortOrder, 0),
-      }))
-      .sort(bySortOrder);
-
-    const lv1NormalizedPreMeta = lv1Raw
-      .filter(isActive)
-      .map((x) => ({
-        ...x,
-        score: toNumber(x.score, 0),
-        sortOrder: toNumber(x.sortOrder, 0),
-      }))
-      .sort(bySortOrder);
-
-    const lv2WithMeta = lv2NormalizedPreMeta.map((lv2) => {
-      const children3 = lv3Normalized.filter(
-        (c) => String(c.parentId) === String(lv2.id),
-      );
-      const rowSpan = children3.length || 1;
-      const totalRatio = sum(children3, (c) => c.ratio);
-      return { ...lv2, rowSpan, totalRatio };
-    });
-
-    const lv1WithMeta = lv1NormalizedPreMeta.map((lv1) => {
-      const children2 = lv2WithMeta.filter(
-        (c) => String(c.parentId) === String(lv1.id),
-      );
-      const rowSpan =
-        children2.length > 0 ? sum(children2, (c) => c.rowSpan) : 1;
-      const totalRatio = sum(children2, (c) => c.totalRatio);
-      return { ...lv1, rowSpan, totalRatio };
-    });
-
-    return {
-      lv1: lv1WithMeta,
-      lv2: lv2WithMeta,
-      lv3: lv3Normalized,
-    };
-  }, [detail]);
-
-  const clickableCellStyle = {
-    cursor: 'pointer',
-    '&:hover': { backgroundColor: 'action.hover' },
-  };
-
-  const getCellProps = (level, item) => {
-    if (!isEditable) return {};
-    return {
-      onClick: () => onCellClick(level, item),
-      sx: clickableCellStyle,
-    };
-  };
-
-  console.log(rendered);
+// 테이블 렌더링 전문 컴포넌트
+function AdjustmentTable({ label, data }) {
+  const { level1, level2 } = data;
 
   return (
-    <TableContainer sx={containerSx}>
-      <Table size="small" stickyHeader>
-        <TableHead>
-          <TableRow>
-            <TableCell align="center">구분</TableCell>
-            <TableCell align="center">평가항목</TableCell>
-            <TableCell align="center">평가지표</TableCell>
-            <TableCell align="center">비율(%)</TableCell>
-          </TableRow>
-        </TableHead>
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {/* 테이블 제목 */}
+      <Typography variant="h6" gutterBottom>
+        {label}
+      </Typography>
 
-        <TableBody>
-          {rendered.lv1.length === 0 && (
+      {/* 테이블 */}
+      <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
+        <Table size="small" stickyHeader>
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={4} align="center">
-                <Typography color="text.secondary">
-                  표시할 평가 기준이 없습니다.
-                </Typography>
+              <TableCell align="center" sx={{ width: '20%' }}>
+                항목
+              </TableCell>
+              <TableCell align="center" sx={{ width: '30%' }}>
+                내용
+              </TableCell>
+              <TableCell align="center" sx={{ width: '10%' }}>
+                {label}
+              </TableCell>
+              <TableCell align="center" sx={{ width: '30%' }}>
+                처리기준
+              </TableCell>
+              <TableCell align="center" sx={{ width: '10%' }}>
+                중복구분
               </TableCell>
             </TableRow>
-          )}
+          </TableHead>
+          <TableBody>
+            {/* level1 데이터가 없을 경우 */}
+            {level1.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <Typography color="text.secondary">
+                    등록된 {label} 항목이 없습니다.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
 
-          {rendered.lv1.map((lv1) => {
-            const lv2List = rendered.lv2.filter(
-              (x) => String(x.parentId) === String(lv1.id),
-            );
+            {/* level1 데이터를 순회하며 행 생성 */}
+            {level1.map((lv1) => {
+              const children = level2.filter((lv2) => lv2.parentId === lv1.id);
 
-            if (lv2List.length === 0) {
-              return (
-                <TableRow key={`lv1-${lv1.id}`}>
-                  <TableCell rowSpan={1} {...getCellProps('level1', lv1)}>
-                    <Box component="span" fontWeight="bold">
-                      {lv1.name}
-                    </Box>
-                    ({lv1.score}점)
-                    <br />
-                    <Typography variant="caption" color="text.secondary">
-                      [총계: {fmtPct(lv1.totalRatio)}%]
-                    </Typography>
-                  </TableCell>
-                  <TableCell colSpan={3} align="center">
-                    <Typography color="text.secondary">
-                      평가항목/지표가 없습니다.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              );
-            }
-
-            return lv2List.flatMap((lv2, lv2Idx) => {
-              const lv3List = rendered.lv3.filter(
-                (x) => String(x.parentId) === String(lv2.id),
-              );
-
-              if (lv3List.length === 0) {
+              // level2 데이터가 없는 경우
+              if (children.length === 0) {
                 return (
-                  <TableRow key={`lv1-${lv1.id}-lv2-${lv2.id}`}>
-                    {lv2Idx === 0 && (
-                      <TableCell
-                        rowSpan={lv1.rowSpan}
-                        {...getCellProps('level1', lv1)}
-                      >
-                        <Box component="span" fontWeight="bold">
-                          {lv1.name}
-                        </Box>{' '}
-                        ({lv1.score}점)
-                        <br />
-                        <Typography variant="caption" color="text.secondary">
-                          [총계: {fmtPct(lv1.totalRatio)}%]
-                        </Typography>
-                      </TableCell>
-                    )}
-                    <TableCell rowSpan={1} {...getCellProps('level2', lv2)}>
-                      <Box component="span" fontWeight="bold">
-                        {lv2.name}
-                      </Box>
-                      <br />
-                      <Typography variant="caption" color="text.secondary">
-                        [소계: {fmtPct(lv2.totalRatio)}%]
-                      </Typography>
-                    </TableCell>
-                    <TableCell colSpan={2} align="center">
+                  <TableRow key={lv1.id}>
+                    <TableCell>{lv1.name}</TableCell>
+                    <TableCell colSpan={4} align="center">
                       <Typography color="text.secondary">
-                        평가지표가 없습니다.
+                        등록된 내용이 없습니다.
                       </Typography>
                     </TableCell>
                   </TableRow>
                 );
               }
 
-              return lv3List.map((lv3, lv3Idx) => (
-                <TableRow key={`lv3-${lv3.id}`}>
-                  {lv2Idx === 0 && lv3Idx === 0 && (
-                    <TableCell
-                      rowSpan={lv1.rowSpan}
-                      {...getCellProps('level1', lv1)}
-                    >
-                      <Box component="span" fontWeight="bold">
-                        {lv1.name}
-                      </Box>{' '}
-                      ({lv1.score}점)
-                      <br />
-                      <Typography variant="caption" color="text.secondary">
-                        [총계: {fmtPct(lv1.totalRatio)}%]
-                      </Typography>
+              // level2 데이터가 있는 경우
+              return children.map((lv2, index) => (
+                <TableRow key={lv2.id}>
+                  {index === 0 && (
+                    <TableCell rowSpan={lv1.rowSpan}>{lv1.name}</TableCell>
+                  )}
+                  <TableCell>{lv2.name}</TableCell>
+                  <TableCell align="right">{lv2.score ?? ''}</TableCell>
+                  {index === 0 && (
+                    <TableCell rowSpan={lv1.rowSpan}>
+                      {lv1.guideline || '-'}
                     </TableCell>
                   )}
-                  {lv3Idx === 0 && (
-                    <TableCell
-                      rowSpan={lv2.rowSpan}
-                      {...getCellProps('level2', lv2)}
-                    >
-                      <Box component="span" fontWeight="bold">
-                        {lv2.name}
-                      </Box>
-                      <br />
-                      <Typography variant="caption" color="text.secondary">
-                        [소계: {fmtPct(lv2.totalRatio)}%]
-                      </Typography>
-                    </TableCell>
-                  )}
-                  <TableCell {...getCellProps('level3', lv3)}>
-                    {lv3.name}
-                  </TableCell>
-                  <TableCell align="right" {...getCellProps('level3', lv3)}>
-                    {fmtPct(lv3.ratio)}
+                  <TableCell align="center">
+                    {lv2.duplicateLimit === -1
+                      ? '무제한'
+                      : `${lv2.duplicateLimit}회`}
                   </TableCell>
                 </TableRow>
               ));
-            });
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
+
+export default AdjustmentTable;

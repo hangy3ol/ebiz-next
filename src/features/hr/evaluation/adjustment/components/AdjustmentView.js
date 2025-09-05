@@ -1,12 +1,14 @@
 'use client';
 
-import { Box, Typography, Button, Paper, Stack } from '@mui/material';
+import { Box, Typography, Button, Paper, Stack, Divider } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
+import { useMemo } from 'react';
 
 import { confirm } from '@/common/utils/confirm';
 import AdjustmentTable from '@/features/hr/evaluation/adjustment/components/AdjustmentTable';
-import { deleteCriteriaApi } from '@/features/hr/evaluation/criteria/api/criteriaApi';
+import { processAdjustmentDetail } from '@/features/hr/evaluation/adjustment/utils/adjustmentMeta';
+// import { deleteAdjustmentApi } from '@/features/hr/evaluation/adjustment/api/adjustmentApi'; // [예정] 추가될 API
 
 export default function AdjustmentView({ initialData }) {
   const { master, detail } = initialData;
@@ -15,12 +17,17 @@ export default function AdjustmentView({ initialData }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
-  // 수정
+  // 데이터 가공
+  const processedData = useMemo(() => {
+    return processAdjustmentDetail(detail);
+  }, [detail]);
+
+  // 수정 페이지로 이동
   const handleEdit = () => {
     router.push(`/hr/evaluation/adjustment/${master.adjustmentMasterId}/edit`);
   };
 
-  // 삭제
+  // 삭제 처리
   const handleDelete = async () => {
     if (master.refCount > 0) {
       enqueueSnackbar(
@@ -32,15 +39,18 @@ export default function AdjustmentView({ initialData }) {
 
     try {
       const isConfirmed = await confirm({
-        title: '평가 기준 삭제',
+        title: '감/가점 기준 삭제',
         content:
-          '정말 이 평가 기준을 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.',
+          '정말 이 기준을 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.',
       });
 
       if (isConfirmed) {
-        const { success, message } = await deleteCriteriaApi({
-          adjustmentMasterId: master.adjustmentMasterId,
-        });
+        // [예정] API 연동 필요
+        // const { success, message } = await deleteAdjustmentApi({
+        //   adjustmentMasterId: master.adjustmentMasterId,
+        // });
+        const success = false; // 임시
+        const message = '아직 삭제 API가 구현되지 않았습니다.'; // 임시
 
         if (success) {
           enqueueSnackbar(message, { variant: 'success' });
@@ -58,6 +68,7 @@ export default function AdjustmentView({ initialData }) {
   };
 
   return (
+    // [수정] CriteriaView와 동일한 최상위 Box 구조
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 헤더 */}
       <Box
@@ -118,20 +129,20 @@ export default function AdjustmentView({ initialData }) {
           </Box>
         </Box>
 
-        {/* 작성 정보 */}
+        {/* 비고 정보 */}
         <Stack direction="row" spacing={2}>
           <Typography variant="body2" color="text.secondary">
             비고: {master.remark || '-'}
           </Typography>
         </Stack>
 
-        {/* 본문 */}
+        {/* [수정] 테이블 컨텐츠 영역 */}
         <Paper variant="outlined" sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-          <AdjustmentTable
-            detail={detail}
-            containerSx={{ maxHeight: '100%' }}
-            isEditable={false}
-          />
+          <AdjustmentTable label="감점" data={processedData.penalty} />
+
+          <Divider />
+
+          <AdjustmentTable label="가점" data={processedData.reward} />
         </Paper>
       </Box>
     </Box>
