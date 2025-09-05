@@ -12,8 +12,8 @@ export async function uploadHandler(files, destinationDir) {
   // 현재 날짜를 'yyyyMMdd' 형식으로 포맷하여 날짜 폴더명으로 사용
   const todayFolder = format(new Date(), 'yyyyMMdd');
 
-  // 최종 업로드 경로 설정 (예: uploads/notices/20250808)
-  const uploadsDir = path.join(
+  // 최종 업로드 경로 설정 (예: uploads/notice/20250808)
+  const uploadDir = path.join(
     process.cwd(),
     UPLOAD_BASE_DIR,
     destinationDir,
@@ -23,7 +23,7 @@ export async function uploadHandler(files, destinationDir) {
 
   try {
     // 최종 저장 경로에 해당하는 디렉터리가 없으면 재귀적으로 생성
-    await fs.mkdir(uploadsDir, { recursive: true });
+    await fs.mkdir(uploadDir, { recursive: true });
 
     for (const file of files) {
       // 파일 객체에서 메타데이터 추출
@@ -35,7 +35,7 @@ export async function uploadHandler(files, destinationDir) {
       // nanoid를 사용해 짧고 안전한 고유 ID 생성
       const storedFileName = `${nanoid()}${extension}`;
 
-      // DB에 저장될 상대 경로 생성 (예: 'notices/20250808/xxxx.txt')
+      // DB에 저장될 상대 경로 생성 (예: 'notice/20250808/xxxx.txt')
       const filePath = path.join(destinationDir, todayFolder, storedFileName);
 
       // 클라이언트에서 받은 파일 데이터를 버퍼로 변환

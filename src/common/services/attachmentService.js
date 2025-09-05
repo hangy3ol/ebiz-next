@@ -1,10 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { db } from '@/libs/db';
 import { convertCamelCase } from '@/common/utils/caseConverter';
 import { executeWithTransaction } from '@/common/utils/executeWithTransaction';
 import removeEmptyDir from '@/common/utils/removeEmptyDir';
+import { db } from '@/libs/db';
 
 // 첨부파일 단건 조회
 export async function getAttachmentById(fileId) {
@@ -16,7 +16,7 @@ export async function getAttachmentById(fileId) {
         path,
         mime_type AS mime_type,
         size
-      FROM ${db.ebiz}.attachments
+      FROM ${db.ebiz}.attachment
       WHERE id = :fileId;
     `;
 
@@ -69,7 +69,7 @@ export async function insertAttachment(
 
     // 테이블명과 컬럼 목록을 새로운 스키마에 맞게 변경
     const sql = `
-      INSERT INTO ${db.ebiz}.attachments (
+      INSERT INTO ${db.ebiz}.attachment (
         parent_type, parent_id, original_file_name, stored_file_name,
         path, mime_type, extension, size, created_by
       ) VALUES ${values.join(', ')};
@@ -100,7 +100,7 @@ export async function deleteAttachment(
           path, 
           stored_file_name AS storedFileName,
           extension
-        FROM ${db.ebiz}.attachments
+        FROM ${db.ebiz}.attachment
         WHERE id IN (:fileIds);
       `,
       {
@@ -113,7 +113,7 @@ export async function deleteAttachment(
     // 2. DB 메타데이터 먼저 삭제
     await db.sequelize.query(
       `
-        DELETE FROM ${db.ebiz}.attachments
+        DELETE FROM ${db.ebiz}.attachment
         WHERE parent_type = :parentType
         AND id IN (:fileIds);
       `,
@@ -159,7 +159,7 @@ export async function deleteAllAttachment(
           path,
           stored_file_name AS storedFileName,
           extension
-        FROM ${db.ebiz}.attachments
+        FROM ${db.ebiz}.attachment
         WHERE parent_type = :parentType 
         AND parent_id = :parentId;
       `,
@@ -173,7 +173,7 @@ export async function deleteAllAttachment(
     // 2. 메타데이터 삭제 (DB에서 삭제)
     await db.sequelize.query(
       `
-        DELETE FROM ${db.ebiz}.attachments
+        DELETE FROM ${db.ebiz}.attachment
         WHERE parent_type = :parentType  
         AND parent_id = :parentId;
       `,

@@ -45,5 +45,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/hr/:path*', '/notices/:path*'], // 인증 필요 경로 설정
+  matcher: ['/hr/:path*', '/notice/:path*'], // 인증 필요 경로 설정
 };

@@ -9,7 +9,7 @@ export async function login({ userId, password }) {
     const { password: storedPassword } = await db.sequelize.query(
       `
 				SELECT password
-				FROM ${db.ebiz}.user_passwords
+				FROM ${db.ebiz}.user_password
 				WHERE user_id = :userId
 				LIMIT 1;
 			`,
@@ -46,7 +46,7 @@ export async function login({ userId, password }) {
 					hire_date,
 					fn_get_dis_users_code(id) AS dis_code,
 					hrm_code
-				FROM ${db.ebiz}.users
+				FROM ${db.ebiz}.user
 				WHERE retirement_date IS NULL
 					AND id = :userId
 				LIMIT 1;
@@ -81,7 +81,7 @@ export async function updatePassword(
       const { password: storedPassword } = await db.sequelize.query(
         `
 					SELECT password
-					FROM ${db.ebiz}.user_passwords
+					FROM ${db.ebiz}.user_password
 					WHERE user_id = :excutedBy
 					LIMIT 1;
 				`,
@@ -104,7 +104,7 @@ export async function updatePassword(
       // 2. 비밀번호 업데이트
       await db.sequelize.query(
         `
-					UPDATE ${db.ebiz}.user_passwords
+					UPDATE ${db.ebiz}.user_password
 					SET password = :newPassword
 					WHERE user_id = :excutedBy;
 				`,

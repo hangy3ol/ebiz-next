@@ -58,7 +58,7 @@ export default function LoginForm() {
       if (success) {
         setProfile(data);
         enqueueSnackbar(message, { variant: 'success' });
-        router.push('/notices');
+        router.push('/notice');
       } else {
         enqueueSnackbar(message, { variant: 'error' });
       }
