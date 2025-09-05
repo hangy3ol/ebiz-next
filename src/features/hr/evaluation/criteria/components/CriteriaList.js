@@ -98,7 +98,7 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
   };
 
   // 등록
-  const createCriteria = async () => {
+  const handleCreate = async () => {
     router.push(`/hr/evaluation/criteria/new`);
   };
 
@@ -194,7 +194,7 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
 
         {/* 그리드 관련 도구 영역 (우측) */}
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="contained" onClick={createCriteria}>
+          <Button variant="contained" onClick={handleCreate}>
             등록
           </Button>
         </Box>

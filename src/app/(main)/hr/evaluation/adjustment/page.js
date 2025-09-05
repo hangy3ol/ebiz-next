@@ -1,8 +1,8 @@
 import AdjustmentList from '@/features/hr/evaluation/adjustment/components/AdjustmentList';
-import { fetchCriteriaList } from '@/features/hr/evaluation/criteria/services/criteriaService';
+import { fetchAdjustmentList } from '@/features/hr/evaluation/adjustment/services/adjustmentService';
 
 export default async function AdjustmentsPage() {
-  const { success, result } = await fetchCriteriaList();
+  const { success, result } = await fetchAdjustmentList();
 
   if (!success) {
     throw new Error();

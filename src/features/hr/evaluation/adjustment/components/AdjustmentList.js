@@ -4,11 +4,8 @@ import {
   Box,
   Button,
   Typography,
-  Select,
-  MenuItem,
   TextField,
   FormControl,
-  InputLabel,
   Skeleton,
 } from '@mui/material';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
@@ -40,8 +37,6 @@ export default function AdjustmentList({ initialData }) {
     () => [
       { field: 'rowNum', headerName: '번호' },
       { field: 'title', headerName: '제목' },
-      { field: 'jobGroupName', headerName: '직군' },
-      { field: 'jobTitleName', headerName: '직책' },
       { field: 'remark', headerName: '비고' },
       { field: 'createdByName', headerName: '등록자' },
       { field: 'createdAt', headerName: '등록일시' },
@@ -91,13 +86,13 @@ export default function AdjustmentList({ initialData }) {
   };
 
   // 등록
-  const createCriteria = async () => {
-    router.push(`/hr/evaluation/criteria/new`);
+  const handleCreate = async () => {
+    router.push(`/hr/evaluation/adjustment/new`);
   };
 
   // 그리드 행 원클릭
   const handleRowClick = ({ id, row }) => {
-    router.push(`/hr/evaluation/criteria/${id}`);
+    router.push(`/hr/evaluation/adjustment/${id}`);
   };
 
   return (
@@ -148,7 +143,7 @@ export default function AdjustmentList({ initialData }) {
 
         {/* 그리드 관련 도구 영역 (우측) */}
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="contained" onClick={createCriteria}>
+          <Button variant="contained" onClick={handleCreate}>
             등록
           </Button>
         </Box>
@@ -164,7 +159,7 @@ export default function AdjustmentList({ initialData }) {
             columns={columns}
             loading={loading}
             throttleRowsMs={0}
-            getRowId={(row) => row.criteriaMasterId}
+            getRowId={(row) => row.adjustmentMasterId}
             initialState={{
               pagination: { paginationModel: { page: 0, pageSize: 100 } },
             }}

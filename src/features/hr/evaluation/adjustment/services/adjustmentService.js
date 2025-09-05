@@ -7,13 +7,9 @@ export async function fetchAdjustmentList(params = {}) {
   try {
     let sql = `
 			SELECT
-        ROW_NUMBER() OVER (ORDER BY id DESC, job_group_code ASC, job_title_code ASC) AS row_num,
-        id AS criteria_master_id,
+        ROW_NUMBER() OVER (ORDER BY id DESC) AS row_num,
+        id AS adjustment_master_id,
         title,
-        job_group_code,
-        fn_get_ebiz_code_name('job_group', job_group_code) AS job_group_name,
-        job_title_code,
-        fn_get_ebiz_code_name('job_title',job_title_code) AS job_title_name,
         remark,
         created_by,
         fn_get_user_name(created_by) AS created_by_name,
@@ -21,28 +17,16 @@ export async function fetchAdjustmentList(params = {}) {
         updated_by,
         fn_get_user_name(updated_by) AS updated_by_name,
         updated_at
-			FROM ${db.ebiz}.evaluation_criteria_master
+			FROM ${db.ebiz}.evaluation_adjustment_master
       WHERE 1 = 1
 		`;
 
     const replacements = {};
 
-    // 해당 criteriaMasterId 빼고 조회
-    if (params.criteriaMasterId) {
-      sql += ` AND id != :criteriaMasterId`;
-      replacements.criteriaMasterId = params.criteriaMasterId;
-    }
-
-    // 직군 조건
-    if (params.jobGroupCode) {
-      sql += ` AND job_group_code = :jobGroupCode`;
-      replacements.jobGroupCode = params.jobGroupCode;
-    }
-
-    // 직책 조건
-    if (params.jobTitleCode) {
-      sql += ` AND job_title_code = :jobTitleCode`;
-      replacements.jobTitleCode = params.jobTitleCode;
+    // 해당 adjustmentMasterId 빼고 조회
+    if (params.adjustmentMasterId) {
+      sql += ` AND id != :adjustmentMasterId`;
+      replacements.adjustmentMasterId = params.adjustmentMasterId;
     }
 
     const raw = await db.sequelize.query(sql, {
@@ -58,7 +42,7 @@ export async function fetchAdjustmentList(params = {}) {
 }
 
 // 감/가점 기준 단건 조회
-export async function fetchAdjustmentById(criteriaMasterId, copyMode) {
+export async function fetchAdjustmentById(adjustmentMasterId, copyMode) {
   try {
     // copyMode 값에 따라 action 설정
     const isCopyMode = String(copyMode).toLowerCase() === 'true';
@@ -68,15 +52,13 @@ export async function fetchAdjustmentById(criteriaMasterId, copyMode) {
     const masterResult = await db.sequelize.query(
       `
         SELECT
-          id AS criteria_master_id,
+          id AS adjustment_master_id,
           title,
-          job_group_code,
-          job_title_code,
           remark,
           (
             SELECT COUNT(*)
             FROM ${db.ebiz}.evaluation_setting_detail esd
-            WHERE esd.criteria_master_id = :criteriaMasterId
+            WHERE esd.adjustment_master_id = :adjustmentMasterId
           ) AS ref_count,
           created_by,
           fn_get_user_name(created_by) AS created_by_name,
@@ -84,11 +66,11 @@ export async function fetchAdjustmentById(criteriaMasterId, copyMode) {
           updated_by,
           fn_get_user_name(updated_by) AS updated_by_name,
           updated_at
-        FROM ${db.ebiz}.evaluation_criteria_master
-        WHERE id = :criteriaMasterId;
+        FROM ${db.ebiz}.evaluation_adjustment_master
+        WHERE id = :adjustmentMasterId;
       `,
       {
-        replacements: { criteriaMasterId },
+        replacements: { adjustmentMasterId },
         type: db.sequelize.QueryTypes.SELECT,
         plain: true, // 결과 1건만 객체로 반환
       },
@@ -103,13 +85,13 @@ export async function fetchAdjustmentById(criteriaMasterId, copyMode) {
           sort_order,
           level,
           '${actionValue}' AS action
-        FROM ${db.ebiz}.evaluation_criteria_detail
-        WHERE master_id = :criteriaMasterId
+        FROM ${db.ebiz}.evaluation_adjustment_detail
+        WHERE master_id = :adjustmentMasterId
         AND level = 1
         ORDER BY sort_order;
       `,
       {
-        replacements: { criteriaMasterId },
+        replacements: { adjustmentMasterId },
         type: db.sequelize.QueryTypes.SELECT,
       },
     );
@@ -123,13 +105,13 @@ export async function fetchAdjustmentById(criteriaMasterId, copyMode) {
           sort_order,
           level,
           '${actionValue}' AS action
-        FROM ${db.ebiz}.evaluation_criteria_detail
-        WHERE master_id = :criteriaMasterId
+        FROM ${db.ebiz}.evaluation_adjustment_detail
+        WHERE master_id = :adjustmentMasterId
         AND level = 2
         ORDER BY sort_order;
       `,
       {
-        replacements: { criteriaMasterId },
+        replacements: { adjustmentMasterId },
         type: db.sequelize.QueryTypes.SELECT,
       },
     );
@@ -145,15 +127,15 @@ export async function fetchAdjustmentById(criteriaMasterId, copyMode) {
           lv3.sort_order,
           lv3.level,
           '${actionValue}' AS action
-        FROM ${db.ebiz}.evaluation_criteria_detail lv3
-        JOIN ${db.ebiz}.evaluation_criteria_detail lv2
+        FROM ${db.ebiz}.evaluation_adjustment_detail lv3
+        JOIN ${db.ebiz}.evaluation_adjustment_detail lv2
         ON lv3.parent_id = lv2.id AND lv2.level = 2
-        WHERE lv3.master_id = :criteriaMasterId
+        WHERE lv3.master_id = :adjustmentMasterId
         AND lv3.level = 3
         ORDER BY lv3.sort_order;
       `,
       {
-        replacements: { criteriaMasterId },
+        replacements: { adjustmentMasterId },
         type: db.sequelize.QueryTypes.SELECT,
       },
     );
@@ -211,7 +193,7 @@ async function insertAdjustmentDetail(
   }
 
   const sql = `
-    INSERT INTO ${db.ebiz}.evaluation_criteria_detail (${fields.join(', ')})
+    INSERT INTO ${db.ebiz}.evaluation_adjustment_detail (${fields.join(', ')})
     VALUES (${values.join(', ')})
   `;
 
@@ -248,7 +230,7 @@ async function updateAdjustmentDetail(item, employeeId, transaction) {
     fields.push('ratio = :ratio'), (replacements.ratio = item.ratio);
 
   const sql = `
-    UPDATE ${db.ebiz}.evaluation_criteria_detail
+    UPDATE ${db.ebiz}.evaluation_adjustment_detail
     SET ${fields.join(', ')}
     WHERE id = :id
   `;
@@ -263,7 +245,7 @@ async function updateAdjustmentDetail(item, employeeId, transaction) {
 // Helper: 평가기준 디테일 삭제
 async function deleteAdjustmentDetail(item, transaction) {
   const sql = `
-    DELETE FROM ${db.ebiz}.evaluation_criteria_detail
+    DELETE FROM ${db.ebiz}.evaluation_adjustment_detail
     WHERE id = :id
   `;
   await db.sequelize.query(sql, {
@@ -279,12 +261,12 @@ export async function saveAdjustment(params, executedBy) {
     const { master, detail } = params;
 
     // 1. Master 처리 (등록 또는 수정)
-    let masterId = master.criteriaMasterId;
+    let masterId = master.adjustmentMasterId;
     if (masterId) {
       // 수정
       await db.sequelize.query(
         `
-          UPDATE ${db.ebiz}.evaluation_criteria_master 
+          UPDATE ${db.ebiz}.evaluation_adjustment_master 
           SET title = :title,
               remark = :remark,
               updated_by = :updatedBy, 
@@ -306,7 +288,7 @@ export async function saveAdjustment(params, executedBy) {
       // 등록
       const [newId] = await db.sequelize.query(
         `
-          INSERT INTO ${db.ebiz}.evaluation_criteria_master (
+          INSERT INTO ${db.ebiz}.evaluation_adjustment_master (
             evaluation_year,
             title,
             job_group_code,
@@ -394,16 +376,16 @@ export async function saveAdjustment(params, executedBy) {
 }
 
 // 평가기준 삭제
-export async function deleteAdjustment(criteriaMasterId) {
+export async function deleteAdjustment(adjustmentMasterId) {
   return executeWithTransaction(async (transaction) => {
     // 1. 자식 테이블인 detail 레코드 먼저 삭제
     await db.sequelize.query(
       `
-        DELETE FROM ${db.ebiz}.evaluation_criteria_detail 
-        WHERE master_id = :criteriaMasterId
+        DELETE FROM ${db.ebiz}.evaluation_adjustment_detail 
+        WHERE master_id = :adjustmentMasterId
       `,
       {
-        replacements: { criteriaMasterId },
+        replacements: { adjustmentMasterId },
         type: db.sequelize.QueryTypes.DELETE,
         transaction,
       },
@@ -412,11 +394,11 @@ export async function deleteAdjustment(criteriaMasterId) {
     // 2. 부모 테이블인 master 레코드 삭제
     await db.sequelize.query(
       `
-        DELETE FROM ${db.ebiz}.evaluation_criteria_master
-        WHERE id = :criteriaMasterId
+        DELETE FROM ${db.ebiz}.evaluation_adjustment_master
+        WHERE id = :adjustmentMasterId
       `,
       {
-        replacements: { criteriaMasterId },
+        replacements: { adjustmentMasterId },
         type: db.sequelize.QueryTypes.DELETE,
         transaction,
       },
