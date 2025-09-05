@@ -42,12 +42,8 @@ export async function fetchAdjustmentList(params = {}) {
 }
 
 // 감/가점 기준 단건 조회
-export async function fetchAdjustmentById(adjustmentMasterId, copyMode) {
+export async function fetchAdjustmentById(adjustmentMasterId) {
   try {
-    // copyMode 값에 따라 action 설정
-    const isCopyMode = String(copyMode).toLowerCase() === 'true';
-    const actionValue = isCopyMode ? 'insert' : 'keep';
-
     // 1) master 조회
     const masterResult = await db.sequelize.query(
       `
@@ -81,10 +77,12 @@ export async function fetchAdjustmentById(adjustmentMasterId, copyMode) {
         SELECT
           id,
           name,
-          score,
+          division,
+          guideline,
+          duplicate_limit,
           sort_order,
           level,
-          '${actionValue}' AS action
+          'keep' AS action
         FROM ${db.ebiz}.evaluation_adjustment_detail
         WHERE master_id = :adjustmentMasterId
         AND level = 1
@@ -102,37 +100,17 @@ export async function fetchAdjustmentById(adjustmentMasterId, copyMode) {
           id,
           parent_id,
           name,
+          division,
+          guideline,
+          score,
+          duplicate_limit,
           sort_order,
           level,
-          '${actionValue}' AS action
+          'keep' AS action
         FROM ${db.ebiz}.evaluation_adjustment_detail
         WHERE master_id = :adjustmentMasterId
         AND level = 2
         ORDER BY sort_order;
-      `,
-      {
-        replacements: { adjustmentMasterId },
-        type: db.sequelize.QueryTypes.SELECT,
-      },
-    );
-
-    const level3Result = await db.sequelize.query(
-      `
-        SELECT
-          lv3.id,
-          lv3.parent_id,
-          lv2.parent_id AS root_id,
-          lv3.name,
-          lv3.ratio,
-          lv3.sort_order,
-          lv3.level,
-          '${actionValue}' AS action
-        FROM ${db.ebiz}.evaluation_adjustment_detail lv3
-        JOIN ${db.ebiz}.evaluation_adjustment_detail lv2
-        ON lv3.parent_id = lv2.id AND lv2.level = 2
-        WHERE lv3.master_id = :adjustmentMasterId
-        AND lv3.level = 3
-        ORDER BY lv3.sort_order;
       `,
       {
         replacements: { adjustmentMasterId },
@@ -147,7 +125,6 @@ export async function fetchAdjustmentById(adjustmentMasterId, copyMode) {
         detail: {
           level1: convertCamelCase(level1Result),
           level2: convertCamelCase(level2Result),
-          level3: convertCamelCase(level3Result),
         },
       },
     };

@@ -58,12 +58,8 @@ export async function fetchCriteriaList(params = {}) {
 }
 
 // 평가 기준 단건 조회
-export async function fetchCriteriaById(criteriaMasterId, copyMode) {
+export async function fetchCriteriaById(criteriaMasterId) {
   try {
-    // copyMode 값에 따라 action 설정
-    const isCopyMode = String(copyMode).toLowerCase() === 'true';
-    const actionValue = isCopyMode ? 'insert' : 'keep';
-
     // 1) master 조회
     const masterResult = await db.sequelize.query(
       `
@@ -102,7 +98,7 @@ export async function fetchCriteriaById(criteriaMasterId, copyMode) {
           score,
           sort_order,
           level,
-          '${actionValue}' AS action
+          'keep' AS action
         FROM ${db.ebiz}.evaluation_criteria_detail
         WHERE master_id = :criteriaMasterId
         AND level = 1
@@ -122,7 +118,7 @@ export async function fetchCriteriaById(criteriaMasterId, copyMode) {
           name,
           sort_order,
           level,
-          '${actionValue}' AS action
+          'keep' AS action
         FROM ${db.ebiz}.evaluation_criteria_detail
         WHERE master_id = :criteriaMasterId
         AND level = 2
@@ -144,7 +140,7 @@ export async function fetchCriteriaById(criteriaMasterId, copyMode) {
           lv3.ratio,
           lv3.sort_order,
           lv3.level,
-          '${actionValue}' AS action
+          'keep' AS action
         FROM ${db.ebiz}.evaluation_criteria_detail lv3
         JOIN ${db.ebiz}.evaluation_criteria_detail lv2
         ON lv3.parent_id = lv2.id AND lv2.level = 2
