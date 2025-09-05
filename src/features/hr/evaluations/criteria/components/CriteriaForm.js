@@ -25,6 +25,10 @@ import {
   criteriaReducer,
   initialCriteriaState,
 } from '@/features/hr/evaluations/criteria/hooks/criteriaReducer';
+import {
+  validateScoreAndRatio,
+  validateHierarchy,
+} from '@/features/hr/evaluations/criteria/utils/criteriaValidator';
 
 export default function CriteriaForm({
   mode = 'create',
@@ -118,23 +122,46 @@ export default function CriteriaForm({
   };
 
   const handleDialogSubmit = (formData) => {
+    let payload;
+    let nextDetailState;
+
     if (dialogMode === 'add') {
-      dispatch({
-        type: ACTION_TYPES.INSERT,
-        payload: {
-          level: dialogType,
-          item: formData,
-        },
-      });
-    } else if (dialogMode === 'edit') {
-      dispatch({
-        type: ACTION_TYPES.UPDATE,
-        payload: {
-          level: dialogType,
-          item: { ...editingItem, ...formData },
-        },
-      });
+      payload = {
+        level: dialogType,
+        item: formData,
+      };
+      const newItem = { ...formData, id: `temp-${Date.now()}` };
+      nextDetailState = {
+        ...detail,
+        [dialogType]: [...detail[dialogType], newItem],
+      };
+    } else {
+      // 'edit'
+      const updatedItem = { ...editingItem, ...formData };
+      payload = {
+        level: dialogType,
+        item: updatedItem,
+      };
+      nextDetailState = {
+        ...detail,
+        [dialogType]: detail[dialogType].map((item) =>
+          item.id === updatedItem.id ? updatedItem : item,
+        ),
+      };
     }
+
+    // [추가] dispatch 전에 Score와 Ratio 규칙만 검증
+    const { isValid, errors } = validateScoreAndRatio(nextDetailState);
+    if (!isValid) {
+      // [수정] 첫 번째 오류만 표시
+      enqueueSnackbar(errors[0], { variant: 'warning' });
+      return;
+    }
+
+    const actionType =
+      dialogMode === 'add' ? ACTION_TYPES.INSERT : ACTION_TYPES.UPDATE;
+    dispatch({ type: actionType, payload });
+
     handleCloseDialog();
   };
 
@@ -172,6 +199,15 @@ export default function CriteriaForm({
   ]);
 
   const handleSave = async () => {
+    // [수정] 저장 시점에는 계층 구조의 무결성만 검증
+    const { isValid, errors } = validateHierarchy(detail);
+
+    if (!isValid) {
+      // [수정] 첫 번째 오류만 표시
+      enqueueSnackbar(errors[0], { variant: 'warning' });
+      return;
+    }
+
     try {
       const payload = {
         master: {

@@ -236,6 +236,12 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
                 noRowsVariant: 'linear-progress',
               },
             }}
+            sx={{
+              // 행 위에 마우스를 올렸을 때 커서를 포인터로 변경
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer',
+              },
+            }}
           />
         ) : (
           <Skeleton variant="rounded" height="100%" animation="wave" />

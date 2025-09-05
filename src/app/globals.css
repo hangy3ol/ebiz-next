@@ -9,12 +9,11 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  box-shadow: 0 0 0px 1000px var(--mui-palette-background-paper) inset !important;
-  -webkit-text-fill-color: var(--mui-palette-text-primary) !important;
-  caret-color: var(--mui-palette-text-primary);
-  transition: background-color 9999s ease-in-out 0s !important;
+  /* 브라우저가 자동완성 배경색을 바꾸는 애니메이션 효과를 */
+  /* 9999초(사실상 무한대) 뒤에 시작하도록 하여, 사실상 비활성화 시킵니다. */
+  -webkit-transition-delay: 9999s;
+  transition-delay: 9999s;
 }
-
 /* a 태그 밑줄 제거 */
 a {
   text-decoration: none;
