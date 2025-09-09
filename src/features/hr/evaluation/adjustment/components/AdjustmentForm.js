@@ -10,28 +10,33 @@ import {
   Divider,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react'; // [추가]
+import { useState, useEffect } from 'react';
 
-import AdjustmentTable from '@/features/hr/evaluation/adjustment/components/AdjustmentTable'; // [수정] AdjustmentEditableTable 대신 재사용
+import AdjustmentTable from '@/features/hr/evaluation/adjustment/components/AdjustmentTable';
+import { processAdjustmentDetail } from '@/features/hr/evaluation/adjustment/utils/adjustmentMeta';
 
 export default function AdjustmentForm({ initialData }) {
   const router = useRouter();
   const isEditMode = !!initialData;
 
-  // [추가] '제목', '비고'를 위한 상태 추가
   const [title, setTitle] = useState('');
   const [remark, setRemark] = useState('');
+  const [processedData, setProcessedData] = useState({
+    penalty: { level1: [], level2: [] },
+    reward: { level1: [], level2: [] },
+  });
 
-  // [추가] 수정 모드일 때 초기 데이터 설정
+  // 수정 모드일 때 초기 데이터 설정
   useEffect(() => {
     if (isEditMode && initialData) {
-      const { master } = initialData;
+      const { master, detail } = initialData;
       setTitle(master.title || '');
       setRemark(master.remark || '');
+      // [수정] 상세 데이터를 가공하여 상태에 설정하는 로직을 기존 useEffect에 통합
+      setProcessedData(processAdjustmentDetail(detail));
     }
   }, [isEditMode, initialData]);
 
-  // [추가] 테이블 행 클릭 핸들러 (추후 로직 구현)
   const handleRowClick = (level, item) => {
     console.log('Clicked:', level, item);
     // 추후 다이얼로그를 여는 로직이 여기에 들어갑니다.
@@ -81,31 +86,22 @@ export default function AdjustmentForm({ initialData }) {
           overflow: 'hidden',
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-            기본 정보
-          </Typography>
-        </Box>
+        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+          기본 정보
+        </Typography>
 
         <Stack spacing={2}>
           <Stack direction="row" spacing={2}>
-            {/* [수정] value와 onChange를 바인딩 */}
             <TextField
               label="제목"
               sx={{ flex: 1 }}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            {/* [수정] value와 onChange를 바인딩 */}
             <TextField
               label="비고"
-              rows={2}
+              multiline // [수정] 여러 줄 입력이 가능하도록 변경
+              rows={1}
               sx={{ flex: 2 }}
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
@@ -116,20 +112,18 @@ export default function AdjustmentForm({ initialData }) {
         {/* 테이블 영역 */}
         <Paper variant="outlined" sx={{ p: 2, flex: 1, overflow: 'auto' }}>
           <Stack spacing={2}>
-            {/* [수정] isEditable과 onRowClick prop 전달 */}
             <AdjustmentTable
               label="감점"
-              data={{ level1: [], level2: [] }} // 임시 데이터
+              data={processedData.penalty} // [수정] 가공된 데이터와 연결
               isEditable={true}
               onRowClick={handleRowClick}
             />
 
             <Divider />
 
-            {/* [수정] isEditable과 onRowClick prop 전달 */}
             <AdjustmentTable
               label="가점"
-              data={{ level1: [], level2: [] }} // 임시 데이터
+              data={processedData.reward} // [수정] 가공된 데이터와 연결
               isEditable={true}
               onRowClick={handleRowClick}
             />

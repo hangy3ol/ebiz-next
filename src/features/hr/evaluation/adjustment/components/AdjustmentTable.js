@@ -11,7 +11,6 @@ import {
   Typography,
 } from '@mui/material';
 
-// [수정] isEditable, onRowClick prop 추가
 function AdjustmentTable({
   label,
   data,
@@ -19,6 +18,21 @@ function AdjustmentTable({
   onRowClick = () => {},
 }) {
   const { level1, level2 } = data;
+
+  // [추가] CriteriaTable과 동일한 셀 스타일 객체
+  const clickableCellStyle = {
+    cursor: 'pointer',
+    '&:hover': { backgroundColor: 'action.hover' },
+  };
+
+  // [추가] CriteriaTable과 동일한 prop 생성 헬퍼 함수
+  const getCellProps = (level, item) => {
+    if (!isEditable) return {};
+    return {
+      onClick: () => onRowClick(level, item),
+      sx: clickableCellStyle,
+    };
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -63,9 +77,9 @@ function AdjustmentTable({
 
               if (children.length === 0) {
                 return (
-                  // [수정] 행(Row)에 클릭 이벤트 및 스타일 적용
-                  <TableRow
-                    key={lv1.id}
+                  // [삭제] 행(Row) 단위 이벤트 및 스타일 제거
+                  <TableRow key={lv1.id}>
+                    {/*
                     onClick={() => isEditable && onRowClick('level1', lv1)}
                     sx={{
                       cursor: isEditable ? 'pointer' : 'default',
@@ -75,8 +89,11 @@ function AdjustmentTable({
                           : 'transparent',
                       },
                     }}
-                  >
-                    <TableCell>{lv1.name}</TableCell>
+                  */}
+                    {/* [수정] 개별 셀에 이벤트 적용 */}
+                    <TableCell {...getCellProps('level1', lv1)}>
+                      {lv1.name}
+                    </TableCell>
                     <TableCell colSpan={4} align="center">
                       <Typography color="text.secondary">
                         등록된 내용이 없습니다.
@@ -87,9 +104,9 @@ function AdjustmentTable({
               }
 
               return children.map((lv2, index) => (
-                // [수정] 행(Row)에 클릭 이벤트 및 스타일 적용
-                <TableRow
-                  key={lv2.id}
+                // [삭제] 행(Row) 단위 이벤트 및 스타일 제거
+                <TableRow key={lv2.id}>
+                  {/*
                   onClick={() => isEditable && onRowClick('level2', lv2)}
                   sx={{
                     cursor: isEditable ? 'pointer' : 'default',
@@ -99,26 +116,33 @@ function AdjustmentTable({
                         : 'transparent',
                     },
                   }}
-                >
+                */}
                   {index === 0 && (
                     <TableCell
                       rowSpan={lv1.rowSpan}
-                      onClick={(e) => {
-                        e.stopPropagation(); // 하위 요소 클릭 시 이벤트 전파 중단
-                        isEditable && onRowClick('level1', lv1);
-                      }}
+                      // [수정] 개별 셀에 이벤트 적용 (기존 stopPropagation 로직은 불필요하여 제거)
+                      {...getCellProps('level1', lv1)}
                     >
                       {lv1.name}
                     </TableCell>
                   )}
-                  <TableCell>{lv2.name}</TableCell>
-                  <TableCell align="right">{lv2.score ?? ''}</TableCell>
+                  {/* [수정] 개별 셀에 이벤트 적용 */}
+                  <TableCell {...getCellProps('level2', lv2)}>
+                    {lv2.name}
+                  </TableCell>
+                  <TableCell align="right" {...getCellProps('level2', lv2)}>
+                    {lv2.score ?? ''}
+                  </TableCell>
                   {index === 0 && (
-                    <TableCell rowSpan={lv1.rowSpan}>
+                    <TableCell
+                      rowSpan={lv1.rowSpan}
+                      // [수정] 개별 셀에 이벤트 적용
+                      {...getCellProps('level1', lv1)}
+                    >
                       {lv1.guideline || '-'}
                     </TableCell>
                   )}
-                  <TableCell align="center">
+                  <TableCell align="center" {...getCellProps('level2', lv2)}>
                     {lv2.duplicateLimit === -1
                       ? '무제한'
                       : `${lv2.duplicateLimit}회`}
