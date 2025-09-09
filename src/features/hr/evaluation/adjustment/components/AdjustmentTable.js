@@ -19,13 +19,11 @@ function AdjustmentTable({
 }) {
   const { level1, level2 } = data;
 
-  // [추가] CriteriaTable과 동일한 셀 스타일 객체
   const clickableCellStyle = {
     cursor: 'pointer',
     '&:hover': { backgroundColor: 'action.hover' },
   };
 
-  // [추가] CriteriaTable과 동일한 prop 생성 헬퍼 함수
   const getCellProps = (level, item) => {
     if (!isEditable) return {};
     return {
@@ -35,12 +33,8 @@ function AdjustmentTable({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Typography variant="h6" gutterBottom>
-        {label}
-      </Typography>
-
-      <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
+    <Box>
+      <TableContainer sx={{ overflow: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
@@ -73,24 +67,13 @@ function AdjustmentTable({
             )}
 
             {level1.map((lv1) => {
-              const children = level2.filter((lv2) => lv2.parentId === lv1.id);
+              const children = level2.filter(
+                (lv2) => String(lv2.parentId) === String(lv1.id),
+              );
 
               if (children.length === 0) {
                 return (
-                  // [삭제] 행(Row) 단위 이벤트 및 스타일 제거
                   <TableRow key={lv1.id}>
-                    {/*
-                    onClick={() => isEditable && onRowClick('level1', lv1)}
-                    sx={{
-                      cursor: isEditable ? 'pointer' : 'default',
-                      '&:hover': {
-                        backgroundColor: isEditable
-                          ? 'action.hover'
-                          : 'transparent',
-                      },
-                    }}
-                  */}
-                    {/* [수정] 개별 셀에 이벤트 적용 */}
                     <TableCell {...getCellProps('level1', lv1)}>
                       {lv1.name}
                     </TableCell>
@@ -104,29 +87,15 @@ function AdjustmentTable({
               }
 
               return children.map((lv2, index) => (
-                // [삭제] 행(Row) 단위 이벤트 및 스타일 제거
                 <TableRow key={lv2.id}>
-                  {/*
-                  onClick={() => isEditable && onRowClick('level2', lv2)}
-                  sx={{
-                    cursor: isEditable ? 'pointer' : 'default',
-                    '&:hover': {
-                      backgroundColor: isEditable
-                        ? 'action.hover'
-                        : 'transparent',
-                    },
-                  }}
-                */}
                   {index === 0 && (
                     <TableCell
                       rowSpan={lv1.rowSpan}
-                      // [수정] 개별 셀에 이벤트 적용 (기존 stopPropagation 로직은 불필요하여 제거)
                       {...getCellProps('level1', lv1)}
                     >
                       {lv1.name}
                     </TableCell>
                   )}
-                  {/* [수정] 개별 셀에 이벤트 적용 */}
                   <TableCell {...getCellProps('level2', lv2)}>
                     {lv2.name}
                   </TableCell>
@@ -136,7 +105,6 @@ function AdjustmentTable({
                   {index === 0 && (
                     <TableCell
                       rowSpan={lv1.rowSpan}
-                      // [수정] 개별 셀에 이벤트 적용
                       {...getCellProps('level1', lv1)}
                     >
                       {lv1.guideline || '-'}
