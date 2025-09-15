@@ -188,7 +188,7 @@ export async function fetchEvaluationYearOptions(params = {}) {
     });
 
     // 연도 옵션 생성
-    const result = formatYearOption(raw, params);
+    const result = await formatYearOption(raw, params);
 
     return { success: true, result };
   } catch (error) {

@@ -1,27 +1,35 @@
 'use client';
 
+// [수정] mui 컴포넌트 추가 import
 import {
   Box,
   Button,
-  Typography,
-  TextField,
   FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Skeleton,
+  TextField,
+  Typography,
 } from '@mui/material';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
-import { useSnackbar } from 'notistack';
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { matchIncludes } from '@/common/utils/filters';
+// [수정] 필터 유틸리티 추가 import
+import { matchEquals, matchIncludes } from '@/common/utils/filters';
 
-export default function AdjustmentList({ initialData }) {
+// [수정] SettingList 컴포넌트 전체 수정
+export default function SettingList({ initialData, filterOptions = {} }) {
   // 상태
   const [rows, setRows] = useState(initialData);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // [수정] 필터 상태 변경
   const [filters, setFilters] = useState({
+    evaluationYear: '',
+    officeId: '',
     keyword: '',
   });
 
@@ -30,30 +38,46 @@ export default function AdjustmentList({ initialData }) {
 
   // 훅
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
 
   // 그리드 컬럼
   const columns = useMemo(
     () => [
-      { field: 'rowNum', headerName: '번호' },
-      { field: 'title', headerName: '제목' },
-      { field: 'remark', headerName: '비고' },
-      { field: 'createdByName', headerName: '등록자' },
-      { field: 'createdAt', headerName: '등록일시' },
-      { field: 'updatedByName', headerName: '변경자' },
-      { field: 'updatedAt', headerName: '변경일시' },
+      {
+        field: 'rowNum',
+        headerName: '번호',
+        width: 80,
+        align: 'center',
+        headerAlign: 'center',
+      },
+      {
+        field: 'evaluationYearLabel',
+        headerName: '평가귀속연도',
+        width: 120,
+        align: 'center',
+        headerAlign: 'center',
+      },
+      { field: 'officeName', headerName: '사업부', width: 150 },
+      { field: 'title', headerName: '평가설정명', flex: 1, minWidth: 250 },
+      { field: 'createdByName', headerName: '생성자', width: 120 },
+      { field: 'createdAt', headerName: '생성일시', width: 180 },
+      { field: 'updatedByName', headerName: '수정자', width: 120 },
+      { field: 'updatedAt', headerName: '수정일시', width: 180 },
     ],
     [],
   );
 
   // 필터
   const searchableFields = useMemo(
-    () => columns.map((column) => column.field),
-    [columns],
+    () => ['title', 'officeName', 'createdByName'],
+    [],
   );
+  // [수정] 필터링 로직 변경
   const filteredRows = useMemo(() => {
-    return rows.filter((row) =>
-      matchIncludes(row, filters.keyword, searchableFields),
+    return rows.filter(
+      (row) =>
+        matchEquals(row.evaluationYear, filters.evaluationYear) &&
+        matchEquals(row.officeId, filters.officeId) &&
+        matchIncludes(row, filters.keyword, searchableFields),
     );
   }, [rows, filters, searchableFields]);
 
@@ -64,40 +88,32 @@ export default function AdjustmentList({ initialData }) {
 
   // 검색 조건, 그리드 초기화
   const handleReset = () => {
-    // 1. 검색 조건 상태 초기화
     setFilters({
+      evaluationYear: '',
+      officeId: '',
       keyword: '',
     });
 
-    // 2. DataGrid 내부 상태 초기화 (apiRef 사용)
     if (apiRef.current) {
-      // 필터 모델 초기화
       apiRef.current.setFilterModel({ items: [] });
-      // 정렬 모델 초기화
       apiRef.current.setSortModel([]);
-      // 열 너비 자동 조절
-      apiRef.current.autosizeColumns({
-        includeHeaders: true,
-        expand: true,
-      });
-      // 페이지네이션을 0페이지로 이동
+      apiRef.current.autosizeColumns({ includeHeaders: true, expand: true });
       apiRef.current.setPage(0);
     }
   };
 
   // 등록
-  const handleCreate = async () => {
-    router.push(`/hr/evaluation/adjustment/new`);
+  const handleCreate = () => {
+    router.push(`/hr/evaluation/setting/new`);
   };
 
   // 그리드 행 원클릭
-  const handleRowClick = ({ id, row }) => {
-    router.push(`/hr/evaluation/adjustment/${id}`);
+  const handleRowClick = ({ id }) => {
+    router.push(`/hr/evaluation/setting/${id}`);
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/*  제목 + 전역 액션 버튼 줄 */}
       <Box
         sx={{
           display: 'flex',
@@ -106,12 +122,10 @@ export default function AdjustmentList({ initialData }) {
           mb: 2,
         }}
       >
-        <Typography variant="h4">감/가점 기준 목록</Typography>
-
-        <Box sx={{ display: 'flex', gap: 1 }}></Box>
+        <Typography variant="h4">평가 설정 목록</Typography>
       </Box>
 
-      {/*  버튼 제어 영역 (그리드 액션 관련) */}
+      {/* 버튼 제어 영역 */}
       <Box
         sx={{
           display: 'flex',
@@ -124,6 +138,48 @@ export default function AdjustmentList({ initialData }) {
       >
         {/* 필터 영역 (좌측) */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          {/* [추가] 평가귀속연도 필터 */}
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel>평가귀속연도</InputLabel>
+            <Select
+              value={filters.evaluationYear}
+              label="평가귀속연도"
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  evaluationYear: e.target.value,
+                }))
+              }
+            >
+              <MenuItem value="">전체</MenuItem>
+              {filterOptions.evaluationYear?.map((item) => (
+                <MenuItem key={item.id} value={item.id}>
+                  {item.name1}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* [추가] 사업부 필터 */}
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel>사업부</InputLabel>
+            <Select
+              value={filters.officeId}
+              label="사업부"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, officeId: e.target.value }))
+              }
+            >
+              <MenuItem value="">전체</MenuItem>
+              {filterOptions.office?.map((item) => (
+                <MenuItem key={item.id} value={item.id}>
+                  {item.name1}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* 키워드 검색 */}
           <FormControl sx={{ minWidth: 200 }} size="small">
             <TextField
               label="키워드 검색"
@@ -135,13 +191,12 @@ export default function AdjustmentList({ initialData }) {
               }
             />
           </FormControl>
-
           <Button variant="outlined" onClick={handleReset}>
             초기화
           </Button>
         </Box>
 
-        {/* 그리드 관련 도구 영역 (우측) */}
+        {/* 액션 버튼 영역 (우측) */}
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button variant="contained" onClick={handleCreate}>
             등록
@@ -150,7 +205,6 @@ export default function AdjustmentList({ initialData }) {
       </Box>
 
       {/* 그리드 */}
-
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {mounted ? (
           <DataGrid
@@ -158,8 +212,7 @@ export default function AdjustmentList({ initialData }) {
             rows={filteredRows}
             columns={columns}
             loading={loading}
-            throttleRowsMs={0}
-            getRowId={(row) => row.adjustmentMasterId}
+            getRowId={(row) => row.settingMasterId} // [수정] PK 컬럼명 변경
             initialState={{
               pagination: { paginationModel: { page: 0, pageSize: 100 } },
             }}
@@ -170,13 +223,8 @@ export default function AdjustmentList({ initialData }) {
               noRowsLabel: '등록된 데이터가 없습니다.',
             }}
             disableColumnMenu
-            autosizeOnMount // 마운트시 열너비 자동조절 추가
-            autosizeOptions={{
-              includeHeaders: true,
-              // includeOutliers: false,
-              // outliersFactor,
-              expand: true,
-            }} // 마운트시 열너비 자동조절 옵션
+            autosizeOnMount
+            autosizeOptions={{ includeHeaders: true, expand: true }}
             onRowClick={handleRowClick}
             slotProps={{
               loadingOverlay: {
@@ -185,7 +233,6 @@ export default function AdjustmentList({ initialData }) {
               },
             }}
             sx={{
-              // 행 위에 마우스를 올렸을 때 커서를 포인터로 변경
               '& .MuiDataGrid-row:hover': {
                 cursor: 'pointer',
               },
