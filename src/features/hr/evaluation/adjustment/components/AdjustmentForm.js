@@ -321,12 +321,14 @@ export default function AdjustmentForm({ initialData }) {
           <Stack direction="row" spacing={2}>
             <TextField
               label="제목"
+              size="small"
               sx={{ flex: 1 }}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
             <TextField
               label="비고"
+              size="small"
               multiline
               rows={1}
               sx={{ flex: 2 }}
