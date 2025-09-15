@@ -84,9 +84,11 @@ export default function AdjustmentCopyView({ initialData }) {
         <Paper variant="outlined" sx={{ p: 2, flex: 1, overflow: 'auto' }}>
           <Stack spacing={2}>
             <Typography variant="h6">감점</Typography>
+
             <AdjustmentTable data={processedData.penalty} isEditable={false} />
             <Divider />
             <Typography variant="h6">가점</Typography>
+
             <AdjustmentTable data={processedData.reward} isEditable={false} />
           </Stack>
         </Paper>

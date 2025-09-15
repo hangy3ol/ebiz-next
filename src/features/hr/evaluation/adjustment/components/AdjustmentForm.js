@@ -28,6 +28,7 @@ export default function AdjustmentForm({ initialData }) {
   const { enqueueSnackbar } = useSnackbar();
   const isEditMode = !!initialData;
 
+  // [수정] 상태 변수 선언을 isSaveDisabled 보다 위로 이동
   const [adjustmentMasterId, setAdjustmentMasterId] = useState(null);
   const [title, setTitle] = useState('');
   const [remark, setRemark] = useState('');
@@ -36,46 +37,22 @@ export default function AdjustmentForm({ initialData }) {
     initialAdjustmentState,
   );
 
+  const isSaveDisabled = isEditMode ? false : !title;
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('');
   const [dialogMode, setDialogMode] = useState('add');
-  const [editingItem, setEditingItem] = useState(null); // [추가] 팝업에서 복사된 데이터를 받아 Form의 상태를 업데이트하는 콜백 함수
+  const [editingItem, setEditingItem] = useState(null);
 
   const handleCopyCallback = useCallback(
     (copiedData) => {
       const { master, detail: detailData } = copiedData;
-      setTitle(`[복사] ${master.title}` || '');
+      setTitle(master.title || '');
       setRemark(master.remark || '');
-
-      const transformToInsert = (arr) => {
-        if (!Array.isArray(arr)) return [];
-        return arr.map((item) => ({
-          ...item,
-          id: undefined,
-          action: 'insert',
-        }));
-      };
 
       dispatch({
         type: ACTION_TYPES.REPLACE_ALL,
-        payload: {
-          penalty: {
-            level1: transformToInsert(
-              detailData.level1.filter((i) => i.division === 'penalty'),
-            ),
-            level2: transformToInsert(
-              detailData.level2.filter((i) => i.division === 'penalty'),
-            ),
-          },
-          reward: {
-            level1: transformToInsert(
-              detailData.level1.filter((i) => i.division === 'reward'),
-            ),
-            level2: transformToInsert(
-              detailData.level2.filter((i) => i.division === 'reward'),
-            ),
-          },
-        },
+        payload: detailData,
       });
 
       enqueueSnackbar('감/가점 기준이 복사되었습니다.', {
@@ -83,10 +60,10 @@ export default function AdjustmentForm({ initialData }) {
       });
     },
     [dispatch, enqueueSnackbar],
-  ); // [추가] 부모 창(현재 Form)의 window 객체에 콜백 함수를 등록
+  );
 
   useEffect(() => {
-    window.handleCopyCallback = handleCopyCallback; // 컴포넌트가 언마운트될 때 window 객체에서 콜백 함수를 제거
+    window.handleCopyCallback = handleCopyCallback;
     return () => {
       delete window.handleCopyCallback;
     };
@@ -118,7 +95,7 @@ export default function AdjustmentForm({ initialData }) {
       penalty: calculateRowSpan(detail.penalty),
       reward: calculateRowSpan(detail.reward),
     };
-  }, [detail]); // [수정] 기존 useEffect 로직을 isEditMode일 경우로 한정
+  }, [detail]);
 
   useEffect(() => {
     if (isEditMode && initialData) {
@@ -127,27 +104,16 @@ export default function AdjustmentForm({ initialData }) {
       setTitle(master.title || '');
       setRemark(master.remark || '');
 
-      const transformToKeep = (arr) =>
-        arr.map((item) => ({ ...item, action: 'keep' }));
-
       dispatch({
-        type: ACTION_TYPES.REPLACE_ALL, // [수정] Reducer와 통일성을 위해 KEEP 대신 REPLACE_ALL 사용
+        type: ACTION_TYPES.KEEP,
         payload: {
           penalty: {
-            level1: transformToKeep(
-              detailData.level1.filter((i) => i.division === 'penalty'),
-            ),
-            level2: transformToKeep(
-              detailData.level2.filter((i) => i.division === 'penalty'),
-            ),
+            level1: detailData.level1.filter((i) => i.division === 'penalty'),
+            level2: detailData.level2.filter((i) => i.division === 'penalty'),
           },
           reward: {
-            level1: transformToKeep(
-              detailData.level1.filter((i) => i.division === 'reward'),
-            ),
-            level2: transformToKeep(
-              detailData.level2.filter((i) => i.division === 'reward'),
-            ),
+            level1: detailData.level1.filter((i) => i.division === 'reward'),
+            level2: detailData.level2.filter((i) => i.division === 'reward'),
           },
         },
       });
@@ -177,7 +143,7 @@ export default function AdjustmentForm({ initialData }) {
   const handleDialogSubmit = (formData) => {
     const [division, level] = dialogType.split('-');
     dispatch({
-      type: dialogMode === 'add' ? ACTION_TYPES.INSERT : ACTION_TYPES.UPDATE, // [수정] item 객체 생성 시 level 정보를 숫자 형태로 포함시킵니다.
+      type: dialogMode === 'add' ? ACTION_TYPES.INSERT : ACTION_TYPES.UPDATE,
       payload: {
         division,
         level,
@@ -243,7 +209,7 @@ export default function AdjustmentForm({ initialData }) {
 
       if (result.success) {
         enqueueSnackbar(result.message, { variant: 'success' });
-        router.push(`/hr/evaluation/adjustment/${result.data.masterId}`);
+        router.push(`/hr/evaluation/adjustment`);
       } else {
         throw new Error(result.message || '저장에 실패했습니다.');
       }
@@ -251,7 +217,7 @@ export default function AdjustmentForm({ initialData }) {
       console.error('Save error:', error);
       enqueueSnackbar(error.message, { variant: 'error' });
     }
-  }; // [추가] 복사 버튼 클릭 시 팝업 열기 핸들러
+  };
 
   const handleCopyClick = () => {
     const popupWidth = 800;
@@ -260,12 +226,11 @@ export default function AdjustmentForm({ initialData }) {
     const top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
     window.open(
-      // [수정] 쿼리 파라미터로 현재 ID 전달 (수정 모드일 때만)
       `/popup/hr/evaluation/adjustment${
         adjustmentMasterId ? `?adjustmentMasterId=${adjustmentMasterId}` : ''
       }`,
-      'adjustmentCopyPopup',
-      `width=${popupWidth},height=${popupHeight},left=${left},top=${top},scrollbars=yes,resizable=yes`,
+      '_blank',
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
     );
   };
 
@@ -286,6 +251,7 @@ export default function AdjustmentForm({ initialData }) {
         <Typography variant="h4">
           {isEditMode ? '감/가점 기준 수정' : '감/가점 기준 등록'}
         </Typography>
+
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
             variant="outlined"
@@ -298,7 +264,7 @@ export default function AdjustmentForm({ initialData }) {
             복사
           </Button>
 
-          <Button variant="contained" type="submit">
+          <Button variant="contained" type="submit" disabled={isSaveDisabled}>
             저장
           </Button>
         </Box>
@@ -326,6 +292,7 @@ export default function AdjustmentForm({ initialData }) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+
             <TextField
               label="비고"
               size="small"
@@ -337,6 +304,7 @@ export default function AdjustmentForm({ initialData }) {
             />
           </Stack>
         </Stack>
+
         <Paper
           variant="outlined"
           sx={{
@@ -363,6 +331,7 @@ export default function AdjustmentForm({ initialData }) {
                 >
                   항목 추가
                 </Button>
+
                 <Button
                   variant="outlined"
                   onClick={() => handleOpenAddDialog('penalty-level2')}
@@ -375,6 +344,7 @@ export default function AdjustmentForm({ initialData }) {
                 </Button>
               </Box>
             </Box>
+
             <AdjustmentTable
               label="감점"
               data={processedData.penalty}
@@ -399,6 +369,7 @@ export default function AdjustmentForm({ initialData }) {
                 >
                   항목 추가
                 </Button>
+
                 <Button
                   variant="outlined"
                   onClick={() => handleOpenAddDialog('reward-level2')}
@@ -411,6 +382,7 @@ export default function AdjustmentForm({ initialData }) {
                 </Button>
               </Box>
             </Box>
+
             <AdjustmentTable
               label="가점"
               data={processedData.reward}
@@ -422,6 +394,7 @@ export default function AdjustmentForm({ initialData }) {
           </Stack>
         </Paper>
       </Box>
+
       <AdjustmentFormDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
