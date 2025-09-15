@@ -72,15 +72,31 @@ export const fetchSettingById = async (settingMasterId) => {
       `
         /* setting-service -> fetchSettingById */
         SELECT
-          id,
+          id AS setting_master_id,
           office_id,
           evaluation_year,
           title,
           job_group_code,
           job_title_code,
+          (
+            SELECT COUNT(*)
+            FROM (
+              SELECT DISTINCT setting_detail_id
+              FROM evaluation_criteria_score
+              WHERE setting_master_id = :settingMasterId
+
+              UNION
+
+              SELECT DISTINCT setting_detail_id
+              FROM evaluation_adjustment_score
+              WHERE setting_master_id = :settingMasterId
+            ) t
+          ) AS ref_count,
           created_by,
+          fn_get_user_name(created_by) AS created_by_name,
           created_at,
           updated_by,
+          fn_get_user_name(updated_by) AS updated_by_name,
           updated_at
         FROM ${db.ebiz}.evaluation_setting_master
         WHERE id = :settingMasterId;

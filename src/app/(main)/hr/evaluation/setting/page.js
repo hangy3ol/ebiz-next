@@ -6,7 +6,7 @@ import {
 import SettingList from '@/features/hr/evaluation/setting/components/SettingList';
 import { fetchSettingList } from '@/features/hr/evaluation/setting/services/settingService';
 
-export default async function EvaluationSettingPage() {
+export default async function SettingPage() {
   // 1. 본문 목록 데이터 조회
   const { success, result } = await fetchSettingList({});
 
