@@ -6,28 +6,24 @@ import { useSnackbar } from 'notistack';
 import { useMemo } from 'react';
 
 import { confirm } from '@/common/utils/confirm';
+import { deleteAdjustmentApi } from '@/features/hr/evaluation/adjustment/api/adjustmentApi'; // [수정] API 임포트
 import AdjustmentTable from '@/features/hr/evaluation/adjustment/components/AdjustmentTable';
 import { processAdjustmentDetail } from '@/features/hr/evaluation/adjustment/utils/adjustmentMeta';
-// import { deleteAdjustmentApi } from '@/features/hr/evaluation/adjustment/api/adjustmentApi'; // [예정] 추가될 API
 
 export default function AdjustmentView({ initialData }) {
-  const { master, detail } = initialData;
+  const { master, detail } = initialData; // 훅
 
-  // 훅
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar(); // 데이터 가공
 
-  // 데이터 가공
   const processedData = useMemo(() => {
     return processAdjustmentDetail(detail);
-  }, [detail]);
+  }, [detail]); // 수정 페이지로 이동
 
-  // 수정 페이지로 이동
   const handleEdit = () => {
     router.push(`/hr/evaluation/adjustment/${master.adjustmentMasterId}/edit`);
-  };
+  }; // 삭제 처리
 
-  // 삭제 처리
   const handleDelete = async () => {
     if (master.refCount > 0) {
       enqueueSnackbar(
@@ -45,15 +41,13 @@ export default function AdjustmentView({ initialData }) {
       });
 
       if (isConfirmed) {
-        // [예정] API 연동 필요
-        // const { success, message } = await deleteAdjustmentApi({
-        //   adjustmentMasterId: master.adjustmentMasterId,
-        // });
-        const success = false; // 임시
-        const message = '아직 삭제 API가 구현되지 않았습니다.'; // 임시
+        // [수정] API 연동
+        const { success, message } = await deleteAdjustmentApi(
+          master.adjustmentMasterId,
+        );
 
         if (success) {
-          enqueueSnackbar(message, { variant: 'success' });
+          enqueueSnackbar('성공적으로 삭제되었습니다.', { variant: 'success' });
           router.push('/hr/evaluation/adjustment');
         } else {
           enqueueSnackbar(message || '삭제에 실패했습니다.', {
@@ -63,7 +57,9 @@ export default function AdjustmentView({ initialData }) {
       }
     } catch (error) {
       console.error('Delete failed', error);
-      enqueueSnackbar('삭제 중 오류가 발생했습니다.', { variant: 'error' });
+      enqueueSnackbar(error.message || '삭제 중 오류가 발생했습니다.', {
+        variant: 'error',
+      });
     }
   };
 
@@ -138,7 +134,6 @@ export default function AdjustmentView({ initialData }) {
         {/* 테이블 컨텐츠 영역 */}
         <Paper
           variant="outlined"
-          // [수정] p:2 -> p:3으로 변경하여 내부 여백 확보
           sx={{
             p: 2,
             flex: 1,
@@ -147,7 +142,6 @@ export default function AdjustmentView({ initialData }) {
             flexDirection: 'column',
           }}
         >
-          {/* [수정] Stack 구조 변경하여 제목 추가 */}
           <Stack spacing={2} flex={1} minHeight={0} overflow="auto">
             <Stack spacing={1}>
               <Typography variant="h6">감점</Typography>

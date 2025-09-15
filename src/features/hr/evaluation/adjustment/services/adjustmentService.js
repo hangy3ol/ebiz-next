@@ -350,3 +350,56 @@ export async function saveAdjustment(params, executedBy) {
     return { success: true, result: { masterId } };
   });
 }
+
+export async function deleteAdjustment(adjustmentMasterId) {
+  return executeWithTransaction(async (transaction) => {
+    // 1. 다른 평가설정에서 해당 기준을 참조하고 있는지 확인
+    // [수정] SQL 템플릿 리터럴의 공백 및 주석을 정리하여 문법 오류 해결
+    const refResult = await db.sequelize.query(
+      `
+        SELECT COUNT(*) AS ref_count
+        FROM ${db.ebiz}.evaluation_setting_detail esd
+        WHERE esd.adjustment_master_id = :adjustmentMasterId
+      `,
+      {
+        replacements: { adjustmentMasterId },
+        type: db.sequelize.QueryTypes.SELECT,
+        transaction,
+        plain: true,
+      },
+    );
+
+    if (refResult.ref_count > 0) {
+      return {
+        success: false,
+        message: '다른 평가 설정에서 사용 중인 기준이므로 삭제할 수 없습니다.',
+      };
+    } // 2. Detail 데이터 삭제
+
+    await db.sequelize.query(
+      `
+        DELETE FROM ${db.ebiz}.evaluation_adjustment_detail
+        WHERE master_id = :adjustmentMasterId
+      `,
+      {
+        replacements: { adjustmentMasterId },
+        type: db.sequelize.QueryTypes.DELETE,
+        transaction,
+      },
+    ); // 3. Master 데이터 삭제
+
+    await db.sequelize.query(
+      `
+        DELETE FROM ${db.ebiz}.evaluation_adjustment_master
+        WHERE id = :adjustmentMasterId
+      `,
+      {
+        replacements: { adjustmentMasterId },
+        type: db.sequelize.QueryTypes.DELETE,
+        transaction,
+      },
+    );
+
+    return { success: true, message: '삭제가 완료되었습니다.' };
+  });
+}

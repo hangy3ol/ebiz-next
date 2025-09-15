@@ -189,7 +189,7 @@ export default function AdjustmentForm({ initialData }) {
       const result = await saveAdjustmentApi(payload);
 
       if (result.success) {
-        enqueueSnackbar('성공적으로 저장되었습니다.', { variant: 'success' });
+        enqueueSnackbar(result.message, { variant: 'success' });
         router.push(`/hr/evaluation/adjustment/${result.data.masterId}`);
       } else {
         throw new Error(result.message || '저장에 실패했습니다.');
