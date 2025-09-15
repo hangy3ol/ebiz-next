@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useState, useCallback } from 'react';
 
 import { saveAdjustmentApi } from '@/features/hr/evaluation/adjustment/api/adjustmentApi';
 import AdjustmentFormDialog from '@/features/hr/evaluation/adjustment/components/AdjustmentFormDialog';
@@ -28,6 +28,7 @@ export default function AdjustmentForm({ initialData }) {
   const { enqueueSnackbar } = useSnackbar();
   const isEditMode = !!initialData;
 
+  const [adjustmentMasterId, setAdjustmentMasterId] = useState(null);
   const [title, setTitle] = useState('');
   const [remark, setRemark] = useState('');
   const [detail, dispatch] = useReducer(
@@ -38,7 +39,58 @@ export default function AdjustmentForm({ initialData }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('');
   const [dialogMode, setDialogMode] = useState('add');
-  const [editingItem, setEditingItem] = useState(null);
+  const [editingItem, setEditingItem] = useState(null); // [추가] 팝업에서 복사된 데이터를 받아 Form의 상태를 업데이트하는 콜백 함수
+
+  const handleCopyCallback = useCallback(
+    (copiedData) => {
+      const { master, detail: detailData } = copiedData;
+      setTitle(`[복사] ${master.title}` || '');
+      setRemark(master.remark || '');
+
+      const transformToInsert = (arr) => {
+        if (!Array.isArray(arr)) return [];
+        return arr.map((item) => ({
+          ...item,
+          id: undefined,
+          action: 'insert',
+        }));
+      };
+
+      dispatch({
+        type: ACTION_TYPES.REPLACE_ALL,
+        payload: {
+          penalty: {
+            level1: transformToInsert(
+              detailData.level1.filter((i) => i.division === 'penalty'),
+            ),
+            level2: transformToInsert(
+              detailData.level2.filter((i) => i.division === 'penalty'),
+            ),
+          },
+          reward: {
+            level1: transformToInsert(
+              detailData.level1.filter((i) => i.division === 'reward'),
+            ),
+            level2: transformToInsert(
+              detailData.level2.filter((i) => i.division === 'reward'),
+            ),
+          },
+        },
+      });
+
+      enqueueSnackbar('감/가점 기준이 복사되었습니다.', {
+        variant: 'success',
+      });
+    },
+    [dispatch, enqueueSnackbar],
+  ); // [추가] 부모 창(현재 Form)의 window 객체에 콜백 함수를 등록
+
+  useEffect(() => {
+    window.handleCopyCallback = handleCopyCallback; // 컴포넌트가 언마운트될 때 window 객체에서 콜백 함수를 제거
+    return () => {
+      delete window.handleCopyCallback;
+    };
+  }, [handleCopyCallback]);
 
   const processedData = useMemo(() => {
     const calculateRowSpan = (data) => {
@@ -66,11 +118,12 @@ export default function AdjustmentForm({ initialData }) {
       penalty: calculateRowSpan(detail.penalty),
       reward: calculateRowSpan(detail.reward),
     };
-  }, [detail]);
+  }, [detail]); // [수정] 기존 useEffect 로직을 isEditMode일 경우로 한정
 
   useEffect(() => {
     if (isEditMode && initialData) {
       const { master, detail: detailData } = initialData;
+      setAdjustmentMasterId(master.adjustmentMasterId);
       setTitle(master.title || '');
       setRemark(master.remark || '');
 
@@ -78,7 +131,7 @@ export default function AdjustmentForm({ initialData }) {
         arr.map((item) => ({ ...item, action: 'keep' }));
 
       dispatch({
-        type: ACTION_TYPES.REPLACE_ALL,
+        type: ACTION_TYPES.REPLACE_ALL, // [수정] Reducer와 통일성을 위해 KEEP 대신 REPLACE_ALL 사용
         payload: {
           penalty: {
             level1: transformToKeep(
@@ -198,6 +251,22 @@ export default function AdjustmentForm({ initialData }) {
       console.error('Save error:', error);
       enqueueSnackbar(error.message, { variant: 'error' });
     }
+  }; // [추가] 복사 버튼 클릭 시 팝업 열기 핸들러
+
+  const handleCopyClick = () => {
+    const popupWidth = 800;
+    const popupHeight = 600;
+    const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+    const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+
+    window.open(
+      // [수정] 쿼리 파라미터로 현재 ID 전달 (수정 모드일 때만)
+      `/popup/hr/evaluation/adjustment${
+        adjustmentMasterId ? `?adjustmentMasterId=${adjustmentMasterId}` : ''
+      }`,
+      'adjustmentCopyPopup',
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top},scrollbars=yes,resizable=yes`,
+    );
   };
 
   return (
@@ -224,6 +293,11 @@ export default function AdjustmentForm({ initialData }) {
           >
             목록
           </Button>
+
+          <Button variant="outlined" onClick={handleCopyClick}>
+            복사
+          </Button>
+
           <Button variant="contained" type="submit">
             저장
           </Button>

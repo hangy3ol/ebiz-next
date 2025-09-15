@@ -35,7 +35,7 @@ export default async function CriteriaPopupPage({ searchParams }) {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, height: '100vh', boxSizing: 'border-box' }}>
       <CriteriaCopyList initialData={result} filterOptions={filterOptions} />
     </Box>
   );

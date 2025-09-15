@@ -16,7 +16,7 @@ export default async function CriteriaCopyViewPage({ params }) {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, height: '100vh', boxSizing: 'border-box' }}>
       <CriteriaCopyView initialData={result} />
     </Box>
   );
