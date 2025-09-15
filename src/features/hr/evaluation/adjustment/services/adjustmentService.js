@@ -158,15 +158,25 @@ async function insertAdjustmentDetail(
     values.push(':parentId');
     replacements.parentId = idMap.get(item.parentId) || item.parentId;
   }
+  if (item.division) {
+    fields.push('division');
+    values.push(':division');
+    replacements.division = item.division;
+  }
+  if (item.guideline) {
+    fields.push('guideline');
+    values.push(':guideline');
+    replacements.guideline = item.guideline;
+  }
   if (item.score !== undefined) {
     fields.push('score');
     values.push(':score');
     replacements.score = item.score;
   }
-  if (item.ratio !== undefined) {
-    fields.push('ratio');
-    values.push(':ratio');
-    replacements.ratio = item.ratio;
+  if (item.duplicateLimit !== undefined) {
+    fields.push('duplicate_limit');
+    values.push(':duplicateLimit');
+    replacements.duplicateLimit = item.duplicateLimit;
   }
 
   const sql = `
@@ -201,10 +211,17 @@ async function updateAdjustmentDetail(item, employeeId, transaction) {
   if (item.parentId !== undefined)
     fields.push('parent_id = :parentId'),
       (replacements.parentId = item.parentId);
+  if (item.division)
+    fields.push('division = :division'),
+      (replacements.division = item.division);
+  if (item.guideline)
+    fields.push('guideline = :guideline'),
+      (replacements.guideline = item.guideline);
   if (item.score !== undefined)
     fields.push('score = :score'), (replacements.score = item.score);
-  if (item.ratio !== undefined)
-    fields.push('ratio = :ratio'), (replacements.ratio = item.ratio);
+  if (item.duplicateLimit !== undefined)
+    fields.push('duplicate_limit = :duplicateLimit'),
+      (replacements.duplicateLimit = item.duplicateLimit);
 
   const sql = `
     UPDATE ${db.ebiz}.evaluation_adjustment_detail
@@ -232,7 +249,7 @@ async function deleteAdjustmentDetail(item, transaction) {
   });
 }
 
-// 메인: 평가기준 저장 (등록/수정)
+// [수정] 메인: 평가기준 저장 (등록/수정)
 export async function saveAdjustment(params, executedBy) {
   return executeWithTransaction(async (transaction) => {
     const { master, detail } = params;
@@ -243,11 +260,11 @@ export async function saveAdjustment(params, executedBy) {
       // 수정
       await db.sequelize.query(
         `
-          UPDATE ${db.ebiz}.evaluation_adjustment_master 
+          UPDATE ${db.ebiz}.evaluation_adjustment_master
           SET title = :title,
               remark = :remark,
-              updated_by = :updatedBy, 
-              updated_at = CURRENT_TIMESTAMP() 
+              updated_by = :updatedBy,
+              updated_at = CURRENT_TIMESTAMP()
           WHERE id = :id
         `,
         {
@@ -266,27 +283,18 @@ export async function saveAdjustment(params, executedBy) {
       const [newId] = await db.sequelize.query(
         `
           INSERT INTO ${db.ebiz}.evaluation_adjustment_master (
-            evaluation_year,
             title,
-            job_group_code,
-            job_title_code,
             remark,
             created_by
           ) VALUES (
-           :evaluationYear,
-           :title,
-           :jobGroupCode,
-           :jobTitleCode,
-           :remark,
-           :createdBy
+            :title,
+            :remark,
+            :createdBy
           )
         `,
         {
           replacements: {
-            evaluationYear: master.evaluationYear,
             title: master.title,
-            jobGroupCode: master.jobGroupCode,
-            jobTitleCode: master.jobTitleCode,
             remark: master.remark,
             createdBy: executedBy,
           },
@@ -300,25 +308,22 @@ export async function saveAdjustment(params, executedBy) {
     // 2. Detail 처리
     const idMap = new Map(); // UUID와 실제 DB ID 매핑용
 
-    // 삭제 (역순: L3 -> L2 -> L1)
-    for (const item of detail.level3.filter((i) => i.action === 'delete'))
-      await deleteAdjustmentDetail(item, transaction);
-    for (const item of detail.level2.filter((i) => i.action === 'delete'))
-      await deleteAdjustmentDetail(item, transaction);
-    for (const item of detail.level1.filter((i) => i.action === 'delete'))
-      await deleteAdjustmentDetail(item, transaction);
+    const allDetails = [...(detail.level1 || []), ...(detail.level2 || [])];
 
-    // 수정 (순서 무관)
-    const updateList = [
-      ...detail.level1.filter((i) => i.action === 'update'),
-      ...detail.level2.filter((i) => i.action === 'update'),
-      ...detail.level3.filter((i) => i.action === 'update'),
-    ];
-    for (const item of updateList)
+    // 삭제
+    for (const item of allDetails.filter((i) => i.action === 'delete')) {
+      await deleteAdjustmentDetail(item, transaction);
+    }
+
+    // 수정
+    for (const item of allDetails.filter((i) => i.action === 'update')) {
       await updateAdjustmentDetail(item, executedBy, transaction);
+    }
 
-    // 등록 (순서 중요: L1 -> L2 -> L3)
-    for (const item of detail.level1.filter((i) => i.action === 'insert')) {
+    // 등록 (Level 1 먼저)
+    for (const item of (detail.level1 || []).filter(
+      (i) => i.action === 'insert',
+    )) {
       const dbId = await insertAdjustmentDetail(
         item,
         masterId,
@@ -328,17 +333,11 @@ export async function saveAdjustment(params, executedBy) {
       );
       idMap.set(item.id, dbId); // 클라이언트 UUID와 생성된 DB ID를 매핑
     }
-    for (const item of detail.level2.filter((i) => i.action === 'insert')) {
-      const dbId = await insertAdjustmentDetail(
-        item,
-        masterId,
-        executedBy,
-        transaction,
-        idMap,
-      );
-      idMap.set(item.id, dbId);
-    }
-    for (const item of detail.level3.filter((i) => i.action === 'insert')) {
+
+    // 등록 (Level 2)
+    for (const item of (detail.level2 || []).filter(
+      (i) => i.action === 'insert',
+    )) {
       await insertAdjustmentDetail(
         item,
         masterId,
@@ -349,38 +348,5 @@ export async function saveAdjustment(params, executedBy) {
     }
 
     return { success: true, result: { masterId } };
-  });
-}
-
-// 평가기준 삭제
-export async function deleteAdjustment(adjustmentMasterId) {
-  return executeWithTransaction(async (transaction) => {
-    // 1. 자식 테이블인 detail 레코드 먼저 삭제
-    await db.sequelize.query(
-      `
-        DELETE FROM ${db.ebiz}.evaluation_adjustment_detail 
-        WHERE master_id = :adjustmentMasterId
-      `,
-      {
-        replacements: { adjustmentMasterId },
-        type: db.sequelize.QueryTypes.DELETE,
-        transaction,
-      },
-    );
-
-    // 2. 부모 테이블인 master 레코드 삭제
-    await db.sequelize.query(
-      `
-        DELETE FROM ${db.ebiz}.evaluation_adjustment_master
-        WHERE id = :adjustmentMasterId
-      `,
-      {
-        replacements: { adjustmentMasterId },
-        type: db.sequelize.QueryTypes.DELETE,
-        transaction,
-      },
-    );
-
-    return { success: true };
   });
 }

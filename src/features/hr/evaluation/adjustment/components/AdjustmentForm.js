@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
+import { saveAdjustmentApi } from '@/features/hr/evaluation/adjustment/api/adjustmentApi';
 import AdjustmentFormDialog from '@/features/hr/evaluation/adjustment/components/AdjustmentFormDialog';
 import AdjustmentTable from '@/features/hr/evaluation/adjustment/components/AdjustmentTable';
 import {
@@ -20,6 +21,7 @@ import {
   adjustmentReducer,
   initialAdjustmentState,
 } from '@/features/hr/evaluation/adjustment/hooks/adjustmentReducer';
+import { validateAdjustment } from '@/features/hr/evaluation/adjustment/utils/adjustmentValidator';
 
 export default function AdjustmentForm({ initialData }) {
   const router = useRouter();
@@ -49,7 +51,6 @@ export default function AdjustmentForm({ initialData }) {
 
       const level1WithRowSpan = activeLevel1.map((lv1) => {
         const childrenCount = activeLevel2.filter(
-          // [수정] 바로 이 부분의 타입 비교가 누락되었습니다.
           (lv2) => String(lv2.parentId) === String(lv1.id),
         ).length;
         return {
@@ -123,8 +124,12 @@ export default function AdjustmentForm({ initialData }) {
   const handleDialogSubmit = (formData) => {
     const [division, level] = dialogType.split('-');
     dispatch({
-      type: dialogMode === 'add' ? ACTION_TYPES.INSERT : ACTION_TYPES.UPDATE,
-      payload: { division, level, item: formData },
+      type: dialogMode === 'add' ? ACTION_TYPES.INSERT : ACTION_TYPES.UPDATE, // [수정] item 객체 생성 시 level 정보를 숫자 형태로 포함시킵니다.
+      payload: {
+        division,
+        level,
+        item: { ...formData, level: level === 'level1' ? 1 : 2 },
+      },
     });
     handleCloseDialog();
   };
@@ -141,19 +146,27 @@ export default function AdjustmentForm({ initialData }) {
   const handleSave = async (event) => {
     event.preventDefault();
 
+    const validationResult = validateAdjustment(detail);
+    if (!validationResult.isValid) {
+      enqueueSnackbar(validationResult.message, { variant: 'error' });
+      return;
+    }
+
     const allDetails = [
       ...detail.penalty.level1,
       ...detail.penalty.level2,
       ...detail.reward.level1,
       ...detail.reward.level2,
     ];
-    const changes = allDetails.filter((item) => item.action !== 'keep');
+
+    const hasNoChanges =
+      isEditMode && allDetails.every((item) => item.action === 'keep');
 
     if (!title) {
       enqueueSnackbar('제목을 입력해주세요.', { variant: 'warning' });
       return;
     }
-    if (changes.length === 0 && isEditMode) {
+    if (hasNoChanges) {
       enqueueSnackbar('변경된 내용이 없습니다.', { variant: 'info' });
       return;
     }
@@ -167,19 +180,24 @@ export default function AdjustmentForm({ initialData }) {
         remark,
       },
       detail: {
-        level1: [...detail.penalty.level1, ...detail.reward.level1].filter(
-          (item) => item.action !== 'keep',
-        ),
-        level2: [...detail.penalty.level2, ...detail.reward.level2].filter(
-          (item) => item.action !== 'keep',
-        ),
+        level1: [...detail.penalty.level1, ...detail.reward.level1],
+        level2: [...detail.penalty.level2, ...detail.reward.level2],
       },
     };
 
-    console.log('Save payload:', payload);
-    enqueueSnackbar('저장 API는 아직 구현되지 않았습니다.', {
-      variant: 'info',
-    });
+    try {
+      const result = await saveAdjustmentApi(payload);
+
+      if (result.success) {
+        enqueueSnackbar('성공적으로 저장되었습니다.', { variant: 'success' });
+        router.push(`/hr/evaluation/adjustment/${result.data.masterId}`);
+      } else {
+        throw new Error(result.message || '저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      enqueueSnackbar(error.message, { variant: 'error' });
+    }
   };
 
   return (
@@ -232,7 +250,6 @@ export default function AdjustmentForm({ initialData }) {
               sx={{ flex: 1 }}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
             />
             <TextField
               label="비고"
