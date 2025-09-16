@@ -204,7 +204,7 @@ export default function SettingView({ initialData }) {
           </Stack>
           <Box
             variant="outlined"
-            sx={{ flex: 2, p: 1, display: 'flex', flexDirection: 'column' }}
+            sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}
           >
             <Typography variant="subtitle2" fontWeight="medium" sx={{ mb: 1 }}>
               5. 평가설정 목록
