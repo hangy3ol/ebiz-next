@@ -1,7 +1,14 @@
 'use client';
 
-// [수정] useMemo 훅 제거
-import { Box, Button, Paper, Stack, Typography, Skeleton } from '@mui/material';
+import {
+  Box,
+  Button,
+  Paper,
+  Stack,
+  Typography,
+  Skeleton,
+  Grid,
+} from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
@@ -9,19 +16,30 @@ import { useState, useEffect } from 'react';
 
 export default function SettingView({ initialData }) {
   const router = useRouter();
-  // [수정] employeeList는 더 이상 사용하지 않음
   const { master, detail, criteriaList, adjustmentList } = initialData || {};
 
-  // [수정] rows 상태와 로직 제거
   const [mounted, setMounted] = useState(false);
-
-  // [삭제] employeeMap 및 관련 useEffect 로직 전체 삭제
+  const [selectedRow, setSelectedRow] = useState(null);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (detail && detail.length > 0) {
+      setSelectedRow(detail[0]);
+    }
+  }, [detail]);
 
-  // [삭제] columns 상수 정의 삭제
+  const handleRowClick = (params) => {
+    setSelectedRow(params.row);
+  };
+
+  // [추가] 선택된 행에 따라 동적으로 평가자 수와 Grid 너비를 계산
+  const evaluatorCount = [
+    selectedRow?.evaluatorName1,
+    selectedRow?.evaluatorName2,
+    selectedRow?.evaluatorName3,
+  ].filter(Boolean).length;
+
+  const gridXs = evaluatorCount > 0 ? 12 / evaluatorCount : 12;
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
@@ -121,14 +139,53 @@ export default function SettingView({ initialData }) {
                 <Typography color="text.secondary">(대상자 그리드)</Typography>
               </Box>
             </Paper>
+            {/* [수정] 4. 평가자 선택 영역 UI 로직 전체 수정 */}
             <Paper variant="outlined" sx={{ p: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 4. 평가자 선택
               </Typography>
-              <Box sx={{ pt: 1, textAlign: 'center' }}>
-                <Typography color="text.secondary">
-                  (평가자 선택 영역)
-                </Typography>
+              <Box sx={{ pt: 1 }}>
+                <Grid container spacing={1} textAlign="center">
+                  {selectedRow?.evaluatorName1 && (
+                    <Grid item xs={gridXs}>
+                      <Typography variant="caption" color="text.secondary">
+                        1차 평가자
+                      </Typography>
+                      <Typography fontWeight="bold">
+                        {selectedRow.evaluatorName1}
+                      </Typography>
+                      <Typography variant="caption">
+                        ({selectedRow.evaluatorWeight1 || 0}%)
+                      </Typography>
+                    </Grid>
+                  )}
+                  {selectedRow?.evaluatorName2 && (
+                    <Grid item xs={gridXs}>
+                      <Typography variant="caption" color="text.secondary">
+                        2차 평가자
+                      </Typography>
+                      <Typography fontWeight="bold">
+                        {selectedRow.evaluatorName2}
+                      </Typography>
+                      <Typography variant="caption">
+                        ({selectedRow.evaluatorWeight2 || 0}%)
+                      </Typography>
+                    </Grid>
+                  )}
+                  {selectedRow?.evaluatorName3 && (
+                    <Grid item xs={gridXs}>
+                      <Typography variant="caption" color="text.secondary">
+                        3차 평가자
+                      </Typography>
+                      <Typography fontWeight="bold">
+                        {selectedRow.evaluatorName3}
+                      </Typography>
+                      <Typography variant="caption">
+                        ({selectedRow.evaluatorWeight3 || 0}%)
+                      </Typography>
+                    </Grid>
+                  )}
+                </Grid>
               </Box>
             </Paper>
           </Stack>
@@ -146,45 +203,39 @@ export default function SettingView({ initialData }) {
                 <DataGrid
                   rows={detail || []}
                   getRowId={(row) => row.evaluateeId}
+                  onRowClick={handleRowClick}
                   columns={[
                     {
                       field: 'evaluateeName',
                       headerName: '대상자명',
-                      width: 75,
                     },
                     {
                       field: 'criteriaMasterTitle',
                       headerName: '평가기준',
-                      flex: 1,
                     },
                     {
                       field: 'adjustmentMasterTitle',
                       headerName: '감/가점 기준',
-                      width: 140,
                     },
                     {
                       field: 'evaluatorName1',
                       headerName: '1차 평가자',
-                      width: 100,
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight1 || '0'}%)`,
                     },
                     {
                       field: 'evaluatorName2',
                       headerName: '2차 평가자',
-                      width: 100,
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight2 || '0'}%)`,
                     },
                     {
                       field: 'evaluatorName3',
                       headerName: '3차 평가자',
-                      width: 100,
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight3 || '0'}%)`,
                     },
                   ]}
-                  pageSizeOptions={[100]}
                   density="compact"
                   localeText={{
                     ...koKR.components.MuiDataGrid.defaultProps.localeText,
@@ -197,7 +248,7 @@ export default function SettingView({ initialData }) {
                     expand: true,
                   }}
                   sx={{
-                    '& .MuiDataGrid-row:hover': {
+                    '& .MuiDataGrid-row': {
                       cursor: 'pointer',
                     },
                   }}
