@@ -3,26 +3,62 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
+import CriteriaDataGrid from './CriteriaDataGrid';
+// [추가] AdjustmentDataGrid 경로 (예시)
+// import AdjustmentDataGrid from './AdjustmentDataGrid';
+
 export default function SettingView({ initialData }) {
   const router = useRouter();
   const { master, detail, criteriaList, adjustmentList, employeeList } =
     initialData || {};
 
+  console.log(initialData);
+
+  const handlePreviewClick = (e, row, type) => {
+    e.stopPropagation(); // 행 클릭 방지
+
+    const width = 1200;
+    const height = 800;
+
+    const dualScreenLeft = window.screenLeft ?? window.screenX;
+    const dualScreenTop = window.screenTop ?? window.screenY;
+
+    const screenWidth =
+      window.innerWidth ?? document.documentElement.clientWidth;
+    const screenHeight =
+      window.innerHeight ?? document.documentElement.clientHeight;
+
+    const left = dualScreenLeft + (screenWidth - width) / 2;
+    const top = dualScreenTop + (screenHeight - height) / 2;
+
+    let url = '';
+    if (type === 'criteria') {
+      url = `${window.location.origin}/popup/hr/evaluation/criteria/${row.criteriaMasterId}`;
+    } else if (type === 'adjustment') {
+      url = `${window.location.origin}/popup/hr/evaluation/adjustment/${row.adjustmentMasterId}`;
+    }
+    window.open(
+      url,
+      '_blank',
+      `width=${width},height=${height},top=${top},left=${left}`,
+    );
+  };
+
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
-      {/* 1. 페이지 헤더 (CriteriaView 참조) */}
+      {/* ... 페이지 헤더 및 본문 헤더 생략 ... */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">
-          {master?.id ? '평가 설정 상세' : '평가 설정 등록'}
+          {master?.settingMasterId ? '평가 설정 상세' : '평가 설정 등록'}
         </Typography>
-        <Button variant="text" onClick={() => router.push('/hr/setting')}>
+        <Button
+          variant="text"
+          onClick={() => router.push('/hr/evaluation/setting')}
+        >
           목록
         </Button>
       </Stack>
-
-      {/* 2. 본문 */}
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
-        {/* 본문 헤더 (master.title + 액션 버튼) */}
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -38,8 +74,7 @@ export default function SettingView({ initialData }) {
             </Button>
           </Box>
         </Stack>
-
-        {/* 3. 메인 컨텐츠 영역 (3단 그리드) */}
+        {/* 전체 컨텐츠 영역을 감싸는 최상위 Paper는 유지 */}
         <Paper
           variant="outlined"
           sx={{
@@ -53,9 +88,31 @@ export default function SettingView({ initialData }) {
         >
           {/* 첫 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
-              <Typography variant="subtitle2" fontWeight="medium">
-                1. 평가기준 선택
+            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <CriteriaDataGrid
+                criteriaList={criteriaList}
+                detail={detail}
+                onPreviewClick={handlePreviewClick}
+              />
+            </Box>
+
+            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
+                2. 감/가점 기준
               </Typography>
               <Box
                 sx={{
@@ -63,37 +120,22 @@ export default function SettingView({ initialData }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                }}
-              >
-                <Typography color="text.secondary">
-                  (평가기준 그리드)
-                </Typography>
-              </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
-              <Typography variant="subtitle2" fontWeight="medium">
-                2. 감/가점 기준 선택
-              </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  height: '100%',
                 }}
               >
                 <Typography color="text.secondary">
                   (감/가점 기준 그리드)
                 </Typography>
               </Box>
-            </Paper>
+            </Box>
           </Stack>
 
           {/* 두 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
-              <Typography variant="subtitle2" fontWeight="medium">
-                3. 대상자 선택
+            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
+                3. 대상자
               </Typography>
               <Box
                 sx={{
@@ -101,26 +143,30 @@ export default function SettingView({ initialData }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  height: '100%',
                 }}
               >
                 <Typography color="text.secondary">(대상자 그리드)</Typography>
               </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ p: 1 }}>
-              <Typography variant="subtitle2" fontWeight="medium">
-                4. 평가자 선택
+            </Box>
+
+            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
+                4. 평가자
               </Typography>
               <Box sx={{ pt: 1, textAlign: 'center' }}>
                 <Typography color="text.secondary">
                   (평가자 선택 영역)
                 </Typography>
               </Box>
-            </Paper>
+            </Box>
           </Stack>
 
           {/* 세 번째 열 */}
-          <Paper variant="outlined" sx={{ flex: 2, p: 1 }}>
-            <Typography variant="subtitle2" fontWeight="medium">
+          {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
+          <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
               5. 평가설정 목록
             </Typography>
             <Box
@@ -129,13 +175,14 @@ export default function SettingView({ initialData }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                height: '100%',
               }}
             >
               <Typography color="text.secondary">
                 (최종 설정 목록 그리드)
               </Typography>
             </Box>
-          </Paper>
+          </Box>
         </Paper>
       </Stack>
     </Stack>
