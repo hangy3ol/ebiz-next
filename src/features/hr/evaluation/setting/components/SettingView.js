@@ -1,6 +1,5 @@
 'use client';
 
-// [추가] List 관련 컴포넌트를 import 합니다.
 import {
   Box,
   Button,
@@ -18,26 +17,30 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 export default function SettingView({ initialData }) {
-  const apiRef = useGridApiRef();
+  const settingApiRef = useGridApiRef();
   const router = useRouter();
-  const { master, detail, criteriaList, adjustmentList } = initialData || {};
+
+  const {
+    master,
+    detail: settingList,
+    criteriaList,
+    adjustmentList,
+  } = initialData || {};
 
   const [mounted, setMounted] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [settingSelectedRow, setSettingSelectedRow] = useState(null);
 
   useEffect(() => {
     setMounted(true);
 
-    // [수정] 컴포넌트가 마운트되고 데이터가 있을 때 첫 번째 행을 선택하는 로직을 좀 더 안정적으로 변경합니다.
-    if (detail && detail.length > 0) {
-      const firstRow = detail[0];
-      setSelectedRow(firstRow); // 초기 selectedRow 설정
+    if (settingList && settingList.length > 0) {
+      const firstRow = settingList[0];
+      setSettingSelectedRow(firstRow);
 
-      // apiRef.current가 준비될 때까지 기다렸다가 선택을 시도합니다.
       const timer = setTimeout(() => {
-        if (apiRef.current) {
+        if (settingApiRef.current) {
           try {
-            apiRef.current.selectRow(firstRow.evaluateeId, true, true);
+            settingApiRef.current.selectRow(firstRow.evaluateeId, true, true);
           } catch (error) {
             console.error('Failed to select row:', error);
           }
@@ -45,19 +48,20 @@ export default function SettingView({ initialData }) {
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [detail, apiRef]); // [수정] mounted 의존성 제거
+  }, [settingList, settingApiRef]);
 
-  const handleRowClick = (params) => {
-    setSelectedRow(params.row);
+  const handleSettingRowClick = (params) => {
+    setSettingSelectedRow(params.row);
   };
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4">
-          {master?.id ? '평가 설정 상세' : '평가 설정 등록'}
-        </Typography>
-        <Button variant="text" onClick={() => router.push('/hr/setting')}>
+        <Typography variant="h4">평가 설정 상세</Typography>
+        <Button
+          variant="text"
+          onClick={() => router.push('/hr/evaluation/setting')}
+        >
           목록
         </Button>
       </Stack>
@@ -88,7 +92,6 @@ export default function SettingView({ initialData }) {
             overflow: 'auto',
           }}
         >
-          {/* // [수정] 왼쪽 정보 영역 UI 변경 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
@@ -99,7 +102,9 @@ export default function SettingView({ initialData }) {
                 <List dense>
                   <ListItem>
                     <ListItemText
-                      primary={selectedRow?.criteriaMasterTitle || '항목 없음'}
+                      primary={
+                        settingSelectedRow?.criteriaMasterTitle || '항목 없음'
+                      }
                     />
                   </ListItem>
                 </List>
@@ -116,7 +121,7 @@ export default function SettingView({ initialData }) {
                   <ListItem>
                     <ListItemText
                       primary={
-                        selectedRow?.adjustmentMasterTitle || '항목 없음'
+                        settingSelectedRow?.adjustmentMasterTitle || '항목 없음'
                       }
                     />
                   </ListItem>
@@ -134,7 +139,9 @@ export default function SettingView({ initialData }) {
                 <List dense>
                   <ListItem>
                     <ListItemText
-                      primary={selectedRow?.evaluateeName || '대상자 없음'}
+                      primary={
+                        settingSelectedRow?.evaluateeName || '대상자 없음'
+                      }
                     />
                   </ListItem>
                 </List>
@@ -153,42 +160,42 @@ export default function SettingView({ initialData }) {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  {selectedRow?.evaluatorName1 ? (
+                  {settingSelectedRow?.evaluatorName1 ? (
                     <>
                       <Stack sx={{ flex: 1, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary">
                           1차 평가자
                         </Typography>
                         <Typography fontWeight="bold">
-                          {selectedRow.evaluatorName1}
+                          {settingSelectedRow.evaluatorName1}
                         </Typography>
                         <Typography variant="caption">
-                          ({selectedRow.evaluatorWeight1 || 0}%)
+                          ({settingSelectedRow.evaluatorWeight1 || 0}%)
                         </Typography>
                       </Stack>
-                      {selectedRow?.evaluatorName2 && (
+                      {settingSelectedRow?.evaluatorName2 && (
                         <Stack sx={{ flex: 1, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">
                             2차 평가자
                           </Typography>
                           <Typography fontWeight="bold">
-                            {selectedRow.evaluatorName2}
+                            {settingSelectedRow.evaluatorName2}
                           </Typography>
                           <Typography variant="caption">
-                            ({selectedRow.evaluatorWeight2 || 0}%)
+                            ({settingSelectedRow.evaluatorWeight2 || 0}%)
                           </Typography>
                         </Stack>
                       )}
-                      {selectedRow?.evaluatorName3 && (
+                      {settingSelectedRow?.evaluatorName3 && (
                         <Stack sx={{ flex: 1, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.secondary">
                             3차 평가자
                           </Typography>
                           <Typography fontWeight="bold">
-                            {selectedRow.evaluatorName3}
+                            {settingSelectedRow.evaluatorName3}
                           </Typography>
                           <Typography variant="caption">
-                            ({selectedRow.evaluatorWeight3 || 0}%)
+                            ({settingSelectedRow.evaluatorWeight3 || 0}%)
                           </Typography>
                         </Stack>
                       )}
@@ -202,20 +209,17 @@ export default function SettingView({ initialData }) {
               </Paper>
             </Box>
           </Stack>
-          <Box
-            variant="outlined"
-            sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}
-          >
+          <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
             <Typography variant="subtitle2" fontWeight="medium" sx={{ mb: 1 }}>
               5. 평가설정 목록
             </Typography>
             <Box sx={{ flex: 1, overflow: 'auto' }}>
               {mounted ? (
                 <DataGrid
-                  apiRef={apiRef}
-                  rows={detail || []}
+                  apiRef={settingApiRef}
+                  rows={settingList || []}
                   getRowId={(row) => row.evaluateeId}
-                  onRowClick={handleRowClick}
+                  onRowClick={handleSettingRowClick}
                   columns={[
                     {
                       field: 'evaluateeName',
