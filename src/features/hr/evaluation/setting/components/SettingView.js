@@ -3,16 +3,16 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
-import CriteriaDataGrid from './CriteriaDataGrid';
-// [추가] AdjustmentDataGrid 경로 (예시)
-// import AdjustmentDataGrid from './AdjustmentDataGrid';
+import AdjustmentDataGrid from '@/features/hr/evaluation/setting/components/AdjustmentDataGrid';
+import CriteriaDataGrid from '@/features/hr/evaluation/setting/components/CriteriaDataGrid';
 
 export default function SettingView({ initialData }) {
   const router = useRouter();
   const { master, detail, criteriaList, adjustmentList, employeeList } =
     initialData || {};
 
-  console.log(initialData);
+  const selectedCriteriaId = detail?.[0]?.criteriaMasterId || null;
+  const selectedAdjustmentId = detail?.[0]?.adjustmentMasterId || null;
 
   const handlePreviewClick = (e, row, type) => {
     e.stopPropagation(); // 행 클릭 방지
@@ -46,7 +46,6 @@ export default function SettingView({ initialData }) {
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
-      {/* ... 페이지 헤더 및 본문 헤더 생략 ... */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">
           {master?.settingMasterId ? '평가 설정 상세' : '평가 설정 등록'}
@@ -74,6 +73,7 @@ export default function SettingView({ initialData }) {
             </Button>
           </Box>
         </Stack>
+
         {/* 전체 컨텐츠 영역을 감싸는 최상위 Paper는 유지 */}
         <Paper
           variant="outlined"
@@ -87,52 +87,40 @@ export default function SettingView({ initialData }) {
           }}
         >
           {/* 첫 번째 열 */}
-          <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
+          <Stack spacing={2} sx={{ flex: 1, minWidth: 0, height: '100%' }}>
             <Box
               sx={{
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
+                minHeight: 0,
               }}
             >
               <CriteriaDataGrid
                 criteriaList={criteriaList}
-                detail={detail}
+                selectedId={selectedCriteriaId}
                 onPreviewClick={handlePreviewClick}
               />
             </Box>
 
-            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
             <Box
               sx={{
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
+                minHeight: 0,
               }}
             >
-              <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
-                2. 감/가점 기준
-              </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                }}
-              >
-                <Typography color="text.secondary">
-                  (감/가점 기준 그리드)
-                </Typography>
-              </Box>
+              <AdjustmentDataGrid
+                adjustmentList={adjustmentList}
+                selectedId={selectedAdjustmentId}
+                onPreviewClick={handlePreviewClick}
+              />
             </Box>
           </Stack>
 
           {/* 두 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
                 3. 대상자
@@ -150,7 +138,6 @@ export default function SettingView({ initialData }) {
               </Box>
             </Box>
 
-            {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
                 4. 평가자
@@ -164,7 +151,6 @@ export default function SettingView({ initialData }) {
           </Stack>
 
           {/* 세 번째 열 */}
-          {/* [수정] Paper를 Box로 변경하여 패딩 제거 */}
           <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
             <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
               5. 평가설정 목록
