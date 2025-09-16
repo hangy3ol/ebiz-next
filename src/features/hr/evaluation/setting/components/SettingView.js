@@ -53,7 +53,7 @@ export default function SettingView({ initialData }) {
         >
           {/* 첫 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
+            <Box variant="outlined" sx={{ flex: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 1. 평가기준 선택
               </Typography>
@@ -69,8 +69,9 @@ export default function SettingView({ initialData }) {
                   (평가기준 그리드)
                 </Typography>
               </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
+            </Box>
+
+            <Box variant="outlined" sx={{ flex: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 2. 감/가점 기준 선택
               </Typography>
@@ -86,12 +87,12 @@ export default function SettingView({ initialData }) {
                   (감/가점 기준 그리드)
                 </Typography>
               </Box>
-            </Paper>
+            </Box>
           </Stack>
 
           {/* 두 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
+            <Box variant="outlined" sx={{ flex: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 3. 대상자 선택
               </Typography>
@@ -105,8 +106,9 @@ export default function SettingView({ initialData }) {
               >
                 <Typography color="text.secondary">(대상자 그리드)</Typography>
               </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ p: 1 }}>
+            </Box>
+
+            <Box variant="outlined" sx={{}}>
               <Typography variant="subtitle2" fontWeight="medium">
                 4. 평가자 선택
               </Typography>
@@ -115,11 +117,11 @@ export default function SettingView({ initialData }) {
                   (평가자 선택 영역)
                 </Typography>
               </Box>
-            </Paper>
+            </Box>
           </Stack>
 
           {/* 세 번째 열 */}
-          <Paper variant="outlined" sx={{ flex: 2, p: 1 }}>
+          <Box variant="outlined" sx={{ flex: 2 }}>
             <Typography variant="subtitle2" fontWeight="medium">
               5. 평가설정 목록
             </Typography>
@@ -135,7 +137,7 @@ export default function SettingView({ initialData }) {
                 (최종 설정 목록 그리드)
               </Typography>
             </Box>
-          </Paper>
+          </Box>
         </Paper>
       </Stack>
     </Stack>
