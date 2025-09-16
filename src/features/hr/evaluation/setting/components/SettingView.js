@@ -1,12 +1,13 @@
 'use client';
 
 import { Box, Button, Paper, Stack, Typography, Skeleton } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 export default function SettingView({ initialData }) {
+  const apiRef = useGridApiRef();
   const router = useRouter();
   const { master, detail, criteriaList, adjustmentList } = initialData || {};
 
@@ -15,10 +16,19 @@ export default function SettingView({ initialData }) {
 
   useEffect(() => {
     setMounted(true);
-    if (detail && detail.length > 0) {
-      setSelectedRow(detail[0]);
+
+    if (detail && detail.length > 0 && apiRef.current) {
+      const firstRow = detail[0];
+      const firstRowId = firstRow.evaluateeId;
+
+      try {
+        apiRef.current.selectRow(firstRowId, true, true);
+        setSelectedRow(firstRow);
+      } catch (error) {
+        console.error('Failed to select row:', error);
+      }
     }
-  }, [detail]);
+  }, [detail, mounted, apiRef]); // apiRef를 의존성 배열에 추가
 
   const handleRowClick = (params) => {
     setSelectedRow(params.row);
@@ -26,7 +36,7 @@ export default function SettingView({ initialData }) {
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
-      {/* 1. 페이지 헤더 */}
+      {/* ... 이하 나머지 코드는 동일 ... */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">
           {master?.id ? '평가 설정 상세' : '평가 설정 등록'}
@@ -35,10 +45,7 @@ export default function SettingView({ initialData }) {
           목록
         </Button>
       </Stack>
-
-      {/* 2. 본문 */}
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
-        {/* 본문 헤더 */}
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -54,8 +61,6 @@ export default function SettingView({ initialData }) {
             </Button>
           </Box>
         </Stack>
-
-        {/* 3. 메인 컨텐츠 영역 */}
         <Paper
           variant="outlined"
           sx={{
@@ -67,9 +72,8 @@ export default function SettingView({ initialData }) {
             overflow: 'auto',
           }}
         >
-          {/* 첫 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
+            <Box variant="outlined" sx={{ flex: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 1. 평가기준 선택
               </Typography>
@@ -85,8 +89,8 @@ export default function SettingView({ initialData }) {
                   (평가기준 그리드)
                 </Typography>
               </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
+            </Box>
+            <Box variant="outlined" sx={{ flex: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 2. 감/가점 기준 선택
               </Typography>
@@ -102,12 +106,10 @@ export default function SettingView({ initialData }) {
                   (감/가점 기준 그리드)
                 </Typography>
               </Box>
-            </Paper>
+            </Box>
           </Stack>
-
-          {/* 두 번째 열 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Paper variant="outlined" sx={{ flex: 1, p: 1 }}>
+            <Box sx={{ flex: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 3. 대상자 선택
               </Typography>
@@ -121,14 +123,12 @@ export default function SettingView({ initialData }) {
               >
                 <Typography color="text.secondary">(대상자 그리드)</Typography>
               </Box>
-            </Paper>
-            {/* 4. 평가자 선택 영역 UI 로직 전체 수정 */}
-            <Paper variant="outlined" sx={{ p: 1 }}>
+            </Box>
+            <Box>
               <Typography variant="subtitle2" fontWeight="medium">
                 4. 평가자 선택
               </Typography>
-              <Box sx={{ pt: 1 }}>
-                {/* Stack(flex)을 이용한 레이아웃 */}
+              <Box>
                 <Stack direction="row" spacing={1}>
                   {selectedRow?.evaluatorName1 && (
                     <Stack sx={{ flex: 1, textAlign: 'center' }}>
@@ -171,10 +171,8 @@ export default function SettingView({ initialData }) {
                   )}
                 </Stack>
               </Box>
-            </Paper>
+            </Box>
           </Stack>
-
-          {/* 세 번째 열 */}
           <Box
             variant="outlined"
             sx={{ flex: 2, p: 1, display: 'flex', flexDirection: 'column' }}
@@ -185,6 +183,7 @@ export default function SettingView({ initialData }) {
             <Box sx={{ flex: 1, overflow: 'auto' }}>
               {mounted ? (
                 <DataGrid
+                  apiRef={apiRef}
                   rows={detail || []}
                   getRowId={(row) => row.evaluateeId}
                   onRowClick={handleRowClick}
@@ -236,11 +235,7 @@ export default function SettingView({ initialData }) {
                     pagination: { paginationModel: { page: 0, pageSize: 100 } },
                   }}
                   pageSizeOptions={[100]}
-                  sx={{
-                    '& .MuiDataGrid-row': {
-                      cursor: 'pointer',
-                    },
-                  }}
+                  sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
                 />
               ) : (
                 <Skeleton variant="rounded" height="100%" animation="wave" />
