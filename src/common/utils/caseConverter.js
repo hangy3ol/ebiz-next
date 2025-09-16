@@ -6,8 +6,8 @@ export function convertCamelCase(obj) {
 
   if (obj !== null && typeof obj === 'object') {
     return Object.entries(obj).reduce((acc, [key, value]) => {
-      // 스네이크 케이스를 카멜 케이스로 변환
-      const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      // [a-z] -> [a-z0-9]로 변경하여 숫자도 처리하도록 수정
+      const camelKey = key.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
       acc[camelKey] = convertCamelCase(value);
       return acc;
     }, {});

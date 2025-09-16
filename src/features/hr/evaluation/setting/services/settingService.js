@@ -113,15 +113,19 @@ export const fetchSettingById = async (settingMasterId) => {
         SELECT
           esd.id AS setting_detail_id,
           esd.evaluatee_id,
+          fn_get_user_name(esd.evaluatee_id) AS evaluatee_name,
           esd.criteria_master_id,
           esd.adjustment_master_id,
           (SELECT title FROM evaluation_criteria_master WHERE id = esd.criteria_master_id) AS criteria_master_title,
           (SELECT title FROM evaluation_adjustment_master WHERE id = esd.adjustment_master_id) AS adjustment_master_title,
           MAX(CASE WHEN ep.evaluation_step = 1 THEN ep.evaluator_id END) AS evaluator_id_1,
+          MAX(CASE WHEN ep.evaluation_step = 1 THEN fn_get_user_name(ep.evaluator_id) END) AS evaluator_name_1,
           MAX(CASE WHEN ep.evaluation_step = 1 THEN ep.weight END) AS evaluator_weight_1,
           MAX(CASE WHEN ep.evaluation_step = 2 THEN ep.evaluator_id END) AS evaluator_id_2,
+          MAX(CASE WHEN ep.evaluation_step = 2 THEN fn_get_user_name(ep.evaluator_id) END) AS evaluator_name_2,
           MAX(CASE WHEN ep.evaluation_step = 2 THEN ep.weight END) AS evaluator_weight_2,
           MAX(CASE WHEN ep.evaluation_step = 3 THEN ep.evaluator_id END) AS evaluator_id_3,
+          MAX(CASE WHEN ep.evaluation_step = 3 THEN fn_get_user_name(ep.evaluator_id) END) AS evaluator_name_3,
           MAX(CASE WHEN ep.evaluation_step = 3 THEN ep.weight END) AS evaluator_weight_3,
           'keep' AS action
         FROM ${db.ebiz}.evaluation_setting_detail esd
