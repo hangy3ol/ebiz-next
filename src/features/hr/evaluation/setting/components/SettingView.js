@@ -1,6 +1,17 @@
 'use client';
 
-import { Box, Button, Paper, Stack, Typography, Skeleton } from '@mui/material';
+// [추가] List 관련 컴포넌트를 import 합니다.
+import {
+  Box,
+  Button,
+  Paper,
+  Stack,
+  Typography,
+  Skeleton,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
@@ -17,18 +28,24 @@ export default function SettingView({ initialData }) {
   useEffect(() => {
     setMounted(true);
 
-    if (detail && detail.length > 0 && apiRef.current) {
+    // [수정] 컴포넌트가 마운트되고 데이터가 있을 때 첫 번째 행을 선택하는 로직을 좀 더 안정적으로 변경합니다.
+    if (detail && detail.length > 0) {
       const firstRow = detail[0];
-      const firstRowId = firstRow.evaluateeId;
+      setSelectedRow(firstRow); // 초기 selectedRow 설정
 
-      try {
-        apiRef.current.selectRow(firstRowId, true, true);
-        setSelectedRow(firstRow);
-      } catch (error) {
-        console.error('Failed to select row:', error);
-      }
+      // apiRef.current가 준비될 때까지 기다렸다가 선택을 시도합니다.
+      const timer = setTimeout(() => {
+        if (apiRef.current) {
+          try {
+            apiRef.current.selectRow(firstRow.evaluateeId, true, true);
+          } catch (error) {
+            console.error('Failed to select row:', error);
+          }
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [detail, mounted, apiRef]); // apiRef를 의존성 배열에 추가
+  }, [detail, apiRef]); // [수정] mounted 의존성 제거
 
   const handleRowClick = (params) => {
     setSelectedRow(params.row);
@@ -36,7 +53,6 @@ export default function SettingView({ initialData }) {
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
-      {/* ... 이하 나머지 코드는 동일 ... */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">
           {master?.id ? '평가 설정 상세' : '평가 설정 등록'}
@@ -72,105 +88,118 @@ export default function SettingView({ initialData }) {
             overflow: 'auto',
           }}
         >
+          {/* // [수정] 왼쪽 정보 영역 UI 변경 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Box variant="outlined" sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 1. 평가기준 선택
               </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography color="text.secondary">
-                  (평가기준 그리드)
-                </Typography>
-              </Box>
+
+              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
+                <List dense>
+                  <ListItem>
+                    <ListItemText
+                      primary={selectedRow?.criteriaMasterTitle || '항목 없음'}
+                    />
+                  </ListItem>
+                </List>
+              </Paper>
             </Box>
-            <Box variant="outlined" sx={{ flex: 1 }}>
+
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 2. 감/가점 기준 선택
               </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography color="text.secondary">
-                  (감/가점 기준 그리드)
-                </Typography>
-              </Box>
+
+              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
+                <List dense>
+                  <ListItem>
+                    <ListItemText
+                      primary={
+                        selectedRow?.adjustmentMasterTitle || '항목 없음'
+                      }
+                    />
+                  </ListItem>
+                </List>
+              </Paper>
             </Box>
           </Stack>
+
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 3. 대상자 선택
               </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography color="text.secondary">(대상자 그리드)</Typography>
-              </Box>
+              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
+                <List dense>
+                  <ListItem>
+                    <ListItemText
+                      primary={selectedRow?.evaluateeName || '대상자 없음'}
+                    />
+                  </ListItem>
+                </List>
+              </Paper>
             </Box>
             <Box>
               <Typography variant="subtitle2" fontWeight="medium">
                 4. 평가자 선택
               </Typography>
-              <Box>
-                <Stack direction="row" spacing={1}>
-                  {selectedRow?.evaluatorName1 && (
-                    <Stack sx={{ flex: 1, textAlign: 'center' }}>
-                      <Typography variant="caption" color="text.secondary">
-                        1차 평가자
-                      </Typography>
-                      <Typography fontWeight="bold">
-                        {selectedRow.evaluatorName1}
-                      </Typography>
-                      <Typography variant="caption">
-                        ({selectedRow.evaluatorWeight1 || 0}%)
-                      </Typography>
-                    </Stack>
-                  )}
-                  {selectedRow?.evaluatorName2 && (
-                    <Stack sx={{ flex: 1, textAlign: 'center' }}>
-                      <Typography variant="caption" color="text.secondary">
-                        2차 평가자
-                      </Typography>
-                      <Typography fontWeight="bold">
-                        {selectedRow.evaluatorName2}
-                      </Typography>
-                      <Typography variant="caption">
-                        ({selectedRow.evaluatorWeight2 || 0}%)
-                      </Typography>
-                    </Stack>
-                  )}
-                  {selectedRow?.evaluatorName3 && (
-                    <Stack sx={{ flex: 1, textAlign: 'center' }}>
-                      <Typography variant="caption" color="text.secondary">
-                        3차 평가자
-                      </Typography>
-                      <Typography fontWeight="bold">
-                        {selectedRow.evaluatorName3}
-                      </Typography>
-                      <Typography variant="caption">
-                        ({selectedRow.evaluatorWeight3 || 0}%)
-                      </Typography>
-                    </Stack>
+
+              <Paper variant="outlined" sx={{ mt: 1 }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ p: 1, minHeight: '80px' }}
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  {selectedRow?.evaluatorName1 ? (
+                    <>
+                      <Stack sx={{ flex: 1, textAlign: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          1차 평가자
+                        </Typography>
+                        <Typography fontWeight="bold">
+                          {selectedRow.evaluatorName1}
+                        </Typography>
+                        <Typography variant="caption">
+                          ({selectedRow.evaluatorWeight1 || 0}%)
+                        </Typography>
+                      </Stack>
+                      {selectedRow?.evaluatorName2 && (
+                        <Stack sx={{ flex: 1, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">
+                            2차 평가자
+                          </Typography>
+                          <Typography fontWeight="bold">
+                            {selectedRow.evaluatorName2}
+                          </Typography>
+                          <Typography variant="caption">
+                            ({selectedRow.evaluatorWeight2 || 0}%)
+                          </Typography>
+                        </Stack>
+                      )}
+                      {selectedRow?.evaluatorName3 && (
+                        <Stack sx={{ flex: 1, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">
+                            3차 평가자
+                          </Typography>
+                          <Typography fontWeight="bold">
+                            {selectedRow.evaluatorName3}
+                          </Typography>
+                          <Typography variant="caption">
+                            ({selectedRow.evaluatorWeight3 || 0}%)
+                          </Typography>
+                        </Stack>
+                      )}
+                    </>
+                  ) : (
+                    <Typography color="text.secondary">
+                      선택된 대상자의 평가자 정보가 없습니다.
+                    </Typography>
                   )}
                 </Stack>
-              </Box>
+              </Paper>
             </Box>
           </Stack>
           <Box
@@ -232,7 +261,9 @@ export default function SettingView({ initialData }) {
                   }}
                   disableColumnMenu
                   initialState={{
-                    pagination: { paginationModel: { page: 0, pageSize: 100 } },
+                    pagination: {
+                      paginationModel: { page: 0, pageSize: 100 },
+                    },
                   }}
                   pageSizeOptions={[100]}
                   sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
