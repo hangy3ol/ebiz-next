@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Box,
-  Button,
-  Paper,
-  Stack,
-  Typography,
-  Skeleton,
-  Grid,
-} from '@mui/material';
+import { Box, Button, Paper, Stack, Typography, Skeleton } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
@@ -31,15 +23,6 @@ export default function SettingView({ initialData }) {
   const handleRowClick = (params) => {
     setSelectedRow(params.row);
   };
-
-  // [추가] 선택된 행에 따라 동적으로 평가자 수와 Grid 너비를 계산
-  const evaluatorCount = [
-    selectedRow?.evaluatorName1,
-    selectedRow?.evaluatorName2,
-    selectedRow?.evaluatorName3,
-  ].filter(Boolean).length;
-
-  const gridXs = evaluatorCount > 0 ? 12 / evaluatorCount : 12;
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
@@ -139,15 +122,16 @@ export default function SettingView({ initialData }) {
                 <Typography color="text.secondary">(대상자 그리드)</Typography>
               </Box>
             </Paper>
-            {/* [수정] 4. 평가자 선택 영역 UI 로직 전체 수정 */}
+            {/* 4. 평가자 선택 영역 UI 로직 전체 수정 */}
             <Paper variant="outlined" sx={{ p: 1 }}>
               <Typography variant="subtitle2" fontWeight="medium">
                 4. 평가자 선택
               </Typography>
               <Box sx={{ pt: 1 }}>
-                <Grid container spacing={1} textAlign="center">
+                {/* Stack(flex)을 이용한 레이아웃 */}
+                <Stack direction="row" spacing={1}>
                   {selectedRow?.evaluatorName1 && (
-                    <Grid item xs={gridXs}>
+                    <Stack sx={{ flex: 1, textAlign: 'center' }}>
                       <Typography variant="caption" color="text.secondary">
                         1차 평가자
                       </Typography>
@@ -157,10 +141,10 @@ export default function SettingView({ initialData }) {
                       <Typography variant="caption">
                         ({selectedRow.evaluatorWeight1 || 0}%)
                       </Typography>
-                    </Grid>
+                    </Stack>
                   )}
                   {selectedRow?.evaluatorName2 && (
-                    <Grid item xs={gridXs}>
+                    <Stack sx={{ flex: 1, textAlign: 'center' }}>
                       <Typography variant="caption" color="text.secondary">
                         2차 평가자
                       </Typography>
@@ -170,10 +154,10 @@ export default function SettingView({ initialData }) {
                       <Typography variant="caption">
                         ({selectedRow.evaluatorWeight2 || 0}%)
                       </Typography>
-                    </Grid>
+                    </Stack>
                   )}
                   {selectedRow?.evaluatorName3 && (
-                    <Grid item xs={gridXs}>
+                    <Stack sx={{ flex: 1, textAlign: 'center' }}>
                       <Typography variant="caption" color="text.secondary">
                         3차 평가자
                       </Typography>
@@ -183,9 +167,9 @@ export default function SettingView({ initialData }) {
                       <Typography variant="caption">
                         ({selectedRow.evaluatorWeight3 || 0}%)
                       </Typography>
-                    </Grid>
+                    </Stack>
                   )}
-                </Grid>
+                </Stack>
               </Box>
             </Paper>
           </Stack>
@@ -208,30 +192,36 @@ export default function SettingView({ initialData }) {
                     {
                       field: 'evaluateeName',
                       headerName: '대상자명',
+                      flex: 0.8,
                     },
                     {
                       field: 'criteriaMasterTitle',
                       headerName: '평가기준',
+                      flex: 1.5,
                     },
                     {
                       field: 'adjustmentMasterTitle',
                       headerName: '감/가점 기준',
+                      flex: 1,
                     },
                     {
                       field: 'evaluatorName1',
                       headerName: '1차 평가자',
+                      flex: 1,
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight1 || '0'}%)`,
                     },
                     {
                       field: 'evaluatorName2',
                       headerName: '2차 평가자',
+                      flex: 1,
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight2 || '0'}%)`,
                     },
                     {
                       field: 'evaluatorName3',
                       headerName: '3차 평가자',
+                      flex: 1,
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight3 || '0'}%)`,
                     },
@@ -242,11 +232,10 @@ export default function SettingView({ initialData }) {
                     noRowsLabel: '등록된 데이터가 없습니다.',
                   }}
                   disableColumnMenu
-                  autosizeOnMount
-                  autosizeOptions={{
-                    includeHeaders: true,
-                    expand: true,
+                  initialState={{
+                    pagination: { paginationModel: { page: 0, pageSize: 100 } },
                   }}
+                  pageSizeOptions={[100]}
                   sx={{
                     '& .MuiDataGrid-row': {
                       cursor: 'pointer',
