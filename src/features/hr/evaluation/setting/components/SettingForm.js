@@ -1,6 +1,5 @@
 'use client';
 
-import PreviewIcon from '@mui/icons-material/Preview';
 import {
   Box,
   Button,
@@ -16,12 +15,12 @@ import {
   Select,
   MenuItem,
   TextField,
-  ListItemButton,
-  IconButton,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useState, useEffect } from 'react';
+
+import CriteriaPanel from './CriteriaPanel';
 
 export default function SettingForm({ mode, initialData, selectOptions }) {
   const [mounted, setMounted] = useState(false);
@@ -33,13 +32,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
   const [title, setTitle] = useState('');
 
-  const [filteredCriteria, setFilteredCriteria] = useState([]);
   const [selectedCriteriaId, setSelectedCriteriaId] = useState(null);
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
   useEffect(() => {
-    // ... 제목 자동 생성 로직 ...
     if (!isEditMode) {
       const { year, office, jobGroup, jobTitle } = selectOptions || {};
       if (
@@ -69,33 +66,17 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   ]);
 
   useEffect(() => {
-    const { criteriaList } = initialData || {};
-    if (!criteriaList) return;
-
-    if (selectedJobGroup && selectedJobTitle) {
-      const filtered = criteriaList.filter(
-        (item) =>
-          item.jobGroupCode === selectedJobGroup &&
-          item.jobTitleCode === selectedJobTitle,
-      );
-      setFilteredCriteria(filtered);
-    } else {
-      setFilteredCriteria([]);
-    }
-  }, [selectedJobGroup, selectedJobTitle, initialData]);
-
-  useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleOpenPreviewPopup = (path, id) => {
-    const popupWidth = 800;
-    const popupHeight = 600;
+  const handleOpenPreviewPopup = (basePath, id) => {
+    const popupWidth = 1200;
+    const popupHeight = 800;
     const left = window.screenX + (window.outerWidth - popupWidth) / 2;
     const top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
     window.open(
-      `${path}/${id}`,
+      `/popup${basePath}/${id}`,
       '_blank',
       `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
     );
@@ -119,7 +100,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack direction="row" spacing={2}>
-            {/* ... 마스터 데이터 입력 폼 ... */}
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>평가귀속년도</InputLabel>
               <Select
@@ -199,81 +179,16 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           }}
         >
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Box
-              sx={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 0,
-              }}
-            >
-              <Typography variant="subtitle2" fontWeight="medium">
-                1. 평가기준 선택
-              </Typography>
-              <Paper
-                variant="outlined"
-                sx={{ mt: 1, flex: 1, overflow: 'auto' }}
-              >
-                {selectedJobGroup && selectedJobTitle ? (
-                  <List dense>
-                    {filteredCriteria.length > 0 ? (
-                      filteredCriteria.map((criterion) => (
-                        <ListItemButton
-                          key={criterion.criteriaMasterId}
-                          selected={
-                            selectedCriteriaId === criterion.criteriaMasterId
-                          }
-                          onClick={() =>
-                            setSelectedCriteriaId(criterion.criteriaMasterId)
-                          }
-                        >
-                          <ListItemText primary={criterion.title} />
-                          {/* [수정] onClick 이벤트 핸들러 추가 */}
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation(); // 이벤트 버블링 방지
-                              handleOpenPreviewPopup(
-                                '/popup/hr/evaluation/criteria',
-                                criterion.criteriaMasterId,
-                              );
-                            }}
-                          >
-                            <PreviewIcon fontSize="small" />
-                          </IconButton>
-                        </ListItemButton>
-                      ))
-                    ) : (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: '100%',
-                        }}
-                      >
-                        <Typography color="text.secondary">
-                          해당 조건의 평가 기준이 없습니다.
-                        </Typography>
-                      </Box>
-                    )}
-                  </List>
-                ) : (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                    }}
-                  >
-                    <Typography color="text.secondary">
-                      상단 직군, 직책을 먼저 선택해주세요.
-                    </Typography>
-                  </Box>
-                )}
-              </Paper>
-            </Box>
+            <CriteriaPanel
+              list={initialData?.criteriaList || []}
+              selectedJobGroup={selectedJobGroup}
+              selectedJobTitle={selectedJobTitle}
+              selectedId={selectedCriteriaId}
+              onSelect={setSelectedCriteriaId}
+              onPreview={(id) =>
+                handleOpenPreviewPopup('/hr/evaluation/criteria', id)
+              }
+            />
 
             <Box
               sx={{
@@ -299,7 +214,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             </Box>
           </Stack>
 
-          {/* ... 나머지 코드 ... */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
@@ -399,7 +313,9 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   }}
                   disableColumnMenu
                   initialState={{
-                    pagination: { paginationModel: { page: 0, pageSize: 100 } },
+                    pagination: {
+                      paginationModel: { page: 0, pageSize: 100 },
+                    },
                   }}
                   pageSizeOptions={[100]}
                 />
