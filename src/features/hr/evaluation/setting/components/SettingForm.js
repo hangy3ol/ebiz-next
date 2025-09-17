@@ -22,8 +22,47 @@ import { useState, useEffect } from 'react';
 
 export default function SettingForm({ mode, initialData, selectOptions }) {
   const [mounted, setMounted] = useState(false);
-
   const isEditMode = mode === 'edit';
+
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedOffice, setSelectedOffice] = useState('');
+  const [selectedJobGroup, setSelectedJobGroup] = useState('');
+  const [selectedJobTitle, setSelectedJobTitle] = useState('');
+  const [title, setTitle] = useState('');
+
+  const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
+
+  useEffect(() => {
+    if (!isEditMode) {
+      const { year, office, jobGroup, jobTitle } = selectOptions || {};
+
+      if (
+        !selectedYear ||
+        !selectedOffice ||
+        !selectedJobGroup ||
+        !selectedJobTitle
+      ) {
+        setTitle('');
+        return;
+      }
+
+      const yearName = getName(year, selectedYear);
+      const officeName = getName(office, selectedOffice);
+      const jobGroupName = getName(jobGroup, selectedJobGroup);
+      const jobTitleName = getName(jobTitle, selectedJobTitle);
+
+      setTitle(
+        `${yearName} 귀속 ${officeName} ${jobGroupName} ${jobTitleName} 인사평가`,
+      );
+    }
+  }, [
+    selectedYear,
+    selectedOffice,
+    selectedJobGroup,
+    selectedJobTitle,
+    selectOptions,
+    isEditMode,
+  ]);
 
   useEffect(() => {
     setMounted(true);
@@ -50,7 +89,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           <Stack direction="row" spacing={2}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>평가귀속년도</InputLabel>
-              <Select label="평가귀속년도" value="">
+              <Select
+                label="평가귀속년도"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
                 {selectOptions?.year?.map((y) => (
                   <MenuItem key={y.id} value={y.id}>
                     {y.name1}
@@ -61,7 +104,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>사업부</InputLabel>
-              <Select label="사업부" value="">
+              <Select
+                label="사업부"
+                value={selectedOffice}
+                onChange={(e) => setSelectedOffice(e.target.value)}
+              >
                 {selectOptions?.office?.map((o) => (
                   <MenuItem key={o.id} value={o.id}>
                     {o.name1}
@@ -72,7 +119,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직군</InputLabel>
-              <Select label="직군" value="">
+              <Select
+                label="직군"
+                value={selectedJobGroup}
+                onChange={(e) => setSelectedJobGroup(e.target.value)}
+              >
                 {selectOptions?.jobGroup?.map((g) => (
                   <MenuItem key={g.id} value={g.id}>
                     {g.name1}
@@ -83,7 +134,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직책</InputLabel>
-              <Select label="직책" value="">
+              <Select
+                label="직책"
+                value={selectedJobTitle}
+                onChange={(e) => setSelectedJobTitle(e.target.value)}
+              >
                 {selectOptions?.jobTitle?.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
                     {t.name1}
@@ -92,7 +147,16 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               </Select>
             </FormControl>
 
-            <TextField label="제목" size="small" fullWidth />
+            <TextField
+              label="제목"
+              size="small"
+              fullWidth
+              value={title}
+              InputProps={{
+                readOnly: true,
+              }}
+              placeholder="상위 항목을 모두 선택하세요"
+            />
           </Stack>
         </Paper>
 
@@ -151,7 +215,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               </Paper>
             </Box>
             <Box>
-              {/* [수정] 제목과 버튼을 한 줄에 배치 */}
               <Stack
                 direction="row"
                 justifyContent="space-between"
@@ -160,7 +223,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 <Typography variant="subtitle2" fontWeight="medium">
                   4. 평가자 선택
                 </Typography>
-                {/* [추가] '목록 적용' 버튼 */}
                 <Button variant="outlined" size="small" color="primary">
                   목록 적용
                 </Button>
@@ -183,7 +245,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
           {/* 우측 데이터 그리드 */}
           <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-            {/* [수정] 제목과 버튼을 한 줄에 배치 */}
             <Stack
               direction="row"
               justifyContent="space-between"
@@ -193,7 +254,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               <Typography variant="subtitle2" fontWeight="medium">
                 5. 평가설정 목록
               </Typography>
-              {/* [추가] '목록 제외' 버튼 */}
               <Button variant="outlined" size="small" color="error">
                 목록 제외
               </Button>

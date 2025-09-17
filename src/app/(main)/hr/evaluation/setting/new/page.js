@@ -21,8 +21,8 @@ export default async function NewSettingPage() {
   ] = await Promise.all([
     makeYearOptions({
       startYear: new Date().getFullYear(),
-      range: 5,
-      mode: 'forward',
+      range: 2,
+      mode: 'around',
       order: 'asc',
     }),
     fetchOfficeOptions(),
