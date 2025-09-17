@@ -10,6 +10,12 @@ import {
   List,
   ListItem,
   ListItemText,
+  // [추가] FormControl 및 관련 컴포넌트 import
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
@@ -18,7 +24,6 @@ import { useState, useEffect } from 'react';
 export default function SettingForm({ mode, initialData, selectOptions }) {
   const [mounted, setMounted] = useState(false);
 
-  // [추가] mode 값에 따라 수정 모드 여부를 판단하는 변수
   const isEditMode = mode === 'edit';
 
   useEffect(() => {
@@ -27,31 +32,71 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
-      {/* 상단 헤더 */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">
           {isEditMode ? '평가 설정 수정' : '평가 설정 등록'}
         </Typography>
-        <Button variant="text">목록</Button>
+        <Stack direction="row" gap={1}>
+          <Button variant="text">목록</Button>
+          <Button variant="contained">저장</Button>
+          <Button variant="outlined" color="error">
+            취소
+          </Button>
+        </Stack>
       </Stack>
 
       {/* 메인 컨텐츠 영역 */}
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography variant="h5" fontWeight="bold" noWrap>
-            신규 평가 설정
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-            <Button variant="contained">저장</Button>
-            <Button variant="outlined" color="error">
-              취소
-            </Button>
-          </Box>
-        </Stack>
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack direction="row" spacing={2}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>평가귀속년도</InputLabel>
+              <Select label="평가귀속년도" value="">
+                {selectOptions?.year?.map((y) => (
+                  <MenuItem key={y.id} value={y.id}>
+                    {y.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>사업부</InputLabel>
+              <Select label="사업부" value="">
+                {selectOptions?.office?.map((o) => (
+                  <MenuItem key={o.id} value={o.id}>
+                    {o.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>직군</InputLabel>
+              <Select label="직군" value="">
+                {selectOptions?.jobGroup?.map((g) => (
+                  <MenuItem key={g.id} value={g.id}>
+                    {g.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>직책</InputLabel>
+              <Select label="직책" value="">
+                {selectOptions?.jobTitle?.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField label="제목" size="small" fullWidth />
+          </Stack>
+        </Paper>
+
         <Paper
           variant="outlined"
           sx={{
