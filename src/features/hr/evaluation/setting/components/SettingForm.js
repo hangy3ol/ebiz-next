@@ -70,8 +70,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   }, []);
 
   const handleOpenPreviewPopup = (basePath, id) => {
-    const popupWidth = 1200;
-    const popupHeight = 800;
+    const popupWidth = 800;
+    const popupHeight = 600;
     const left = window.screenX + (window.outerWidth - popupWidth) / 2;
     const top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
