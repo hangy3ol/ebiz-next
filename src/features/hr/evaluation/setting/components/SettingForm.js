@@ -80,12 +80,14 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     if (!employeeList) return;
 
     if (selectedOffice && selectedJobGroup && selectedJobTitle) {
-      const filtered = employeeList.filter(
-        (emp) =>
-          emp.officeId === selectedOffice &&
-          emp.jobGroupCode === selectedJobGroup &&
-          emp.jobTitleCode === selectedJobTitle,
-      );
+      const filtered = employeeList
+        .filter((emp) => emp.userId !== '21001') // 이행재 이사 제외(임원이지만 절차상 팀장으로 취급)
+        .filter(
+          (emp) =>
+            emp.officeId === selectedOffice &&
+            emp.jobGroupCode === selectedJobGroup &&
+            emp.jobTitleCode === selectedJobTitle,
+        );
       setCandidateList(filtered);
     } else {
       setCandidateList([]);
@@ -104,24 +106,29 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     let step3 = [];
 
     if (selectedJobTitle === '01') {
+      // 1차 평가자: 임원 중 이행재 이사, 대표님, 회장님 제외
       step1 = employeeList
         .filter((e) => e.executiveYn === 'Y')
-        .filter((e) => e.userId !== '21001')
-        .filter((e) => e.userId !== '21404')
-        .filter((e) => e.userId !== '82001');
+        .filter((e) => e.userId !== '21001') // 이행재 이사 제외
+        .filter((e) => e.userId !== '21404') // 대표님 제외
+        .filter((e) => e.userId !== '82001'); // 회장님 제외
 
+      // 2차 평가자: 대표님
       step2 = employeeList.filter((e) => e.userId === '21404');
     } else if (selectedJobTitle === '02') {
+      // 1차 평가자: 해당 사업부 팀장
       step1 = employeeList
         .filter((e) => e.officeId === selectedOffice)
         .filter((e) => e.jobTitleCode === '01');
 
+      // 2차 평가자: 임원 중 이행재 이사, 대표님, 회장님 제외
       step2 = employeeList
         .filter((e) => e.executiveYn === 'Y')
-        .filter((e) => e.userId !== '21001')
-        .filter((e) => e.userId !== '21404')
-        .filter((e) => e.userId !== '82001');
+        .filter((e) => e.userId !== '21001') // 이행재 이사 제외
+        .filter((e) => e.userId !== '21404') // 대표님 제외
+        .filter((e) => e.userId !== '82001'); // 회장님 제외
 
+      // 3차 평가자: 대표님
       step3 = employeeList.filter((e) => e.userId === '21404');
     }
 
