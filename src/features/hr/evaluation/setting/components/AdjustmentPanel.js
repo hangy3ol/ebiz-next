@@ -11,56 +11,37 @@ import {
   ListItemText,
   IconButton,
 } from '@mui/material';
-import { useState, useEffect } from 'react';
 
-export default function CriteriaPanel({
+export default function AdjustmentPanel({
   list, // 원본 데이터 리스트
-  selectedJobGroup, // 필터링 조건 1
-  selectedJobTitle, // 필터링 조건 2
+  enabled, // 부모로부터 받은 목록 활성화 여부
   selectedId, // 부모로부터 받은 선택된 ID
   onSelect, // 부모에게 선택된 ID를 알리는 함수
   onPreview, // 부모에게 미리보기를 알리는 함수
 }) {
-  const [filteredCriteria, setFilteredCriteria] = useState([]);
-
-  useEffect(() => {
-    if (!list) return;
-
-    if (selectedJobGroup && selectedJobTitle) {
-      const filtered = list.filter(
-        (item) =>
-          item.jobGroupCode === selectedJobGroup &&
-          item.jobTitleCode === selectedJobTitle,
-      );
-      setFilteredCriteria(filtered);
-    } else {
-      setFilteredCriteria([]);
-    }
-  }, [selectedJobGroup, selectedJobTitle, list]);
-
   return (
     <Box
       sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
     >
       <Typography variant="subtitle2" fontWeight="medium">
-        1. 평가기준 선택
+        2. 감/가점 기준 선택
       </Typography>
       <Paper variant="outlined" sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
-        {selectedJobGroup && selectedJobTitle ? (
+        {enabled ? (
           <List dense>
-            {filteredCriteria.length > 0 ? (
-              filteredCriteria.map((criterion) => (
+            {list?.length > 0 ? (
+              list.map((adjustment) => (
                 <ListItemButton
-                  key={criterion.criteriaMasterId}
-                  selected={selectedId === criterion.criteriaMasterId}
-                  onClick={() => onSelect(criterion.criteriaMasterId)}
+                  key={adjustment.adjustmentMasterId}
+                  selected={selectedId === adjustment.adjustmentMasterId}
+                  onClick={() => onSelect(adjustment.adjustmentMasterId)}
                 >
-                  <ListItemText primary={criterion.title} />
+                  <ListItemText primary={adjustment.title} />
                   <IconButton
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onPreview(criterion.criteriaMasterId);
+                      onPreview(adjustment.adjustmentMasterId);
                     }}
                   >
                     <PreviewIcon fontSize="small" />
@@ -70,7 +51,7 @@ export default function CriteriaPanel({
             ) : (
               <ListItem>
                 <ListItemText
-                  primary="해당 조건의 평가 기준이 없습니다."
+                  primary="등록된 항목이 없습니다."
                   sx={{ textAlign: 'center', color: 'text.secondary' }}
                 />
               </ListItem>
@@ -86,7 +67,8 @@ export default function CriteriaPanel({
             }}
           >
             <Typography color="text.secondary">
-              평가 정보(연도, 사업부 등)를 먼저 선택해주세요.
+              평가 정보(연도, 사업부 등)와 평가 기준을
+              <br /> 먼저 선택해주세요.
             </Typography>
           </Box>
         )}
