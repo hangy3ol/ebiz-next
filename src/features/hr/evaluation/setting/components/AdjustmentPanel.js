@@ -66,9 +66,8 @@ export default function AdjustmentPanel({
               height: '100%',
             }}
           >
-            <Typography color="text.secondary">
-              평가 정보(연도, 사업부 등)와 평가 기준을
-              <br /> 먼저 선택해주세요.
+            <Typography color="text.secondary" variant="body2">
+              설정(연도, 사업부 등)과 평가 기준을 먼저 선택해주세요.
             </Typography>
           </Box>
         )}

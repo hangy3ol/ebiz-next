@@ -43,7 +43,7 @@ export default function CriteriaPanel({
       sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
     >
       <Typography variant="subtitle2" fontWeight="medium">
-        1. 평가기준 선택
+        1. 평가 기준 선택
       </Typography>
       <Paper variant="outlined" sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
         {selectedJobGroup && selectedJobTitle ? (
@@ -85,8 +85,8 @@ export default function CriteriaPanel({
               height: '100%',
             }}
           >
-            <Typography color="text.secondary">
-              평가 정보(연도, 사업부 등)를 먼저 선택해주세요.
+            <Typography color="text.secondary" variant="body2">
+              설정(연도, 사업부 등)을 먼저 선택해주세요.
             </Typography>
           </Box>
         )}

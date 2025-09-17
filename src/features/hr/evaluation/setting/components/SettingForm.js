@@ -225,7 +225,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <Box
               sx={{
-                flex: 1,
+                flex: 7,
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: 0,
@@ -234,10 +234,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               <Typography variant="subtitle2" fontWeight="medium">
                 3. 대상자 선택
               </Typography>
-              <Paper
-                variant="outlined"
-                sx={{ mt: 1, flex: 1, overflow: 'auto' }}
-              >
+              <Box sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
                 {selectedYear &&
                 selectedOffice &&
                 selectedJobGroup &&
@@ -264,10 +261,30 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                     density="compact"
                     localeText={{
                       ...koKR.components.MuiDataGrid.defaultProps.localeText,
+                      noRowsLabel: '등록된 데이터가 없습니다.',
+                    }}
+                    checkboxSelection
+                    pageSizeOptions={[100]}
+                    initialState={{
+                      pagination: {
+                        paginationModel: { page: 0, pageSize: 100 },
+                      },
+                    }}
+                    slotProps={{
+                      loadingOverlay: {
+                        variant: 'linear-progress',
+                        noRowsVariant: 'linear-progress',
+                      },
+                    }}
+                    sx={{
+                      '& .MuiDataGrid-row:hover': {
+                        cursor: 'pointer',
+                      },
                     }}
                   />
                 ) : (
-                  <Box
+                  <Paper
+                    variant="outlined"
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -285,11 +302,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                       <br />
                       먼저 선택해주세요.
                     </Typography>
-                  </Box>
+                  </Paper>
                 )}
-              </Paper>
+              </Box>
             </Box>
-            <Box>
+
+            <Box sx={{ flex: 3, display: 'flex', flexDirection: 'column' }}>
               <Stack
                 direction="row"
                 justifyContent="space-between"
@@ -302,7 +320,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   목록 적용
                 </Button>
               </Stack>
-              <Paper variant="outlined" sx={{ mt: 1 }}>
+              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
                 <Stack
                   direction="row"
                   spacing={1}
@@ -371,7 +389,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   density="compact"
                   localeText={{
                     ...koKR.components.MuiDataGrid.defaultProps.localeText,
-                    noRowsLabel: '평가 대상자를 추가해주세요.',
+                    noRowsLabel: '등록된 데이터가 없습니다.',
                   }}
                   disableColumnMenu
                   initialState={{
@@ -380,6 +398,17 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                     },
                   }}
                   pageSizeOptions={[100]}
+                  slotProps={{
+                    loadingOverlay: {
+                      variant: 'linear-progress',
+                      noRowsVariant: 'linear-progress',
+                    },
+                  }}
+                  sx={{
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer',
+                    },
+                  }}
                 />
               ) : (
                 <Skeleton variant="rounded" height="100%" animation="wave" />
