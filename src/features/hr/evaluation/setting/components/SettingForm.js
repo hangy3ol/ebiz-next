@@ -15,10 +15,11 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
-import AdjustmentPanel from './AdjustmentPanel';
-import CriteriaPanel from './CriteriaPanel';
+import { matchIncludes } from '@/common/utils/filters';
+import AdjustmentPanel from '@/features/hr/evaluation/setting/components/AdjustmentPanel';
+import CriteriaPanel from '@/features/hr/evaluation/setting/components/CriteriaPanel';
 
 export default function SettingForm({ mode, initialData, selectOptions }) {
   const [mounted, setMounted] = useState(false);
@@ -34,6 +35,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [selectedAdjustmentId, setSelectedAdjustmentId] = useState(null);
 
   const [candidateList, setCandidateList] = useState([]);
+
+  const [candidateKeyword, setCandidateKeyword] = useState('');
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
@@ -82,6 +85,17 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
       setCandidateList([]);
     }
   }, [selectedOffice, selectedJobGroup, selectedJobTitle, initialData]);
+
+  const searchableCandidateFields = useMemo(
+    () => ['userName', 'departmentName', 'positionName'],
+    [],
+  );
+
+  const filteredCandidateList = useMemo(() => {
+    return candidateList.filter((candidate) =>
+      matchIncludes(candidate, candidateKeyword, searchableCandidateFields),
+    );
+  }, [candidateList, candidateKeyword, searchableCandidateFields]);
 
   useEffect(() => {
     setMounted(true);
@@ -231,9 +245,23 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 minHeight: 0,
               }}
             >
-              <Typography variant="subtitle2" fontWeight="medium">
-                3. 대상자 선택
-              </Typography>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="subtitle2" fontWeight="medium">
+                  3. 대상자 선택
+                </Typography>
+                <TextField
+                  size="small"
+                  variant="outlined"
+                  placeholder="키워드 검색"
+                  value={candidateKeyword}
+                  onChange={(e) => setCandidateKeyword(e.target.value)}
+                />
+              </Stack>
+
               <Box sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
                 {selectedYear &&
                 selectedOffice &&
@@ -242,7 +270,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 selectedCriteriaId &&
                 selectedAdjustmentId ? (
                   <DataGrid
-                    rows={candidateList}
+                    // [수정] 필터링된 목록을 DataGrid에 전달
+                    rows={filteredCandidateList}
                     columns={[
                       { field: 'userName', headerName: '성명', flex: 1 },
                       {
