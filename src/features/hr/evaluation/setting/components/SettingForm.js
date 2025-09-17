@@ -1,5 +1,6 @@
 'use client';
 
+import PreviewIcon from '@mui/icons-material/Preview';
 import {
   Box,
   Button,
@@ -15,6 +16,8 @@ import {
   Select,
   MenuItem,
   TextField,
+  ListItemButton,
+  IconButton,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
@@ -33,6 +36,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [title, setTitle] = useState('');
 
   const [selectedCriteriaId, setSelectedCriteriaId] = useState(null);
+  const [selectedAdjustmentId, setSelectedAdjustmentId] = useState(null);
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
@@ -205,11 +209,60 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 variant="outlined"
                 sx={{ mt: 1, flex: 1, overflow: 'auto' }}
               >
-                <List dense>
-                  <ListItem>
-                    <ListItemText primary={'항목 없음'} />
-                  </ListItem>
-                </List>
+                {/* [수정] 조건부 렌더링 로직 추가 */}
+                {selectedJobGroup && selectedJobTitle && selectedCriteriaId ? (
+                  <List dense>
+                    {initialData?.adjustmentList?.length > 0 ? (
+                      initialData.adjustmentList.map((adjustment) => (
+                        <ListItemButton
+                          key={adjustment.adjustmentMasterId}
+                          selected={
+                            selectedAdjustmentId ===
+                            adjustment.adjustmentMasterId
+                          }
+                          onClick={() =>
+                            setSelectedAdjustmentId(
+                              adjustment.adjustmentMasterId,
+                            )
+                          }
+                        >
+                          <ListItemText primary={adjustment.title} />
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenPreviewPopup(
+                                '/hr/evaluation/adjustment',
+                                adjustment.adjustmentMasterId,
+                              );
+                            }}
+                          >
+                            <PreviewIcon fontSize="small" />
+                          </IconButton>
+                        </ListItemButton>
+                      ))
+                    ) : (
+                      <ListItem>
+                        <ListItemText primary={'등록된 항목이 없습니다.'} />
+                      </ListItem>
+                    )}
+                  </List>
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                    }}
+                  >
+                    <Typography color="text.secondary" textAlign="center">
+                      평가 정보(연도, 사업부 등)와 평가 기준을
+                      <br />
+                      먼저 선택해주세요.
+                    </Typography>
+                  </Box>
+                )}
               </Paper>
             </Box>
           </Stack>

@@ -91,7 +91,7 @@ export default function CriteriaPanel({
             }}
           >
             <Typography color="text.secondary">
-              상단 직군, 직책을 먼저 선택해주세요.
+              평가 정보(연도, 사업부 등)를 먼저 선택해주세요.
             </Typography>
           </Box>
         )}
