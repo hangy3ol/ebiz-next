@@ -298,9 +298,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                       textAlign="center"
                       variant="body2"
                     >
-                      상단의 모든 항목을
-                      <br />
-                      먼저 선택해주세요.
+                      기본 정보와 평가 기준, 감/가점 기준을 먼저 선택해주세요.
                     </Typography>
                   </Paper>
                 )}
