@@ -203,6 +203,15 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     );
   };
 
+  const isEvaluatorSectionVisible = !!(
+    selectedYear &&
+    selectedOffice &&
+    selectedJobGroup &&
+    selectedJobTitle &&
+    selectedCriteriaId &&
+    selectedAdjustmentId
+  );
+
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -327,16 +336,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <CandidatePanel
-              enabled={
-                !!(
-                  selectedYear &&
-                  selectedOffice &&
-                  selectedJobGroup &&
-                  selectedJobTitle &&
-                  selectedCriteriaId &&
-                  selectedAdjustmentId
-                )
-              }
+              enabled={isEvaluatorSectionVisible}
               list={filteredCandidateList}
               keyword={candidateKeyword}
               onKeywordChange={setCandidateKeyword}
@@ -355,12 +355,9 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   목록 적용
                 </Button>
               </Stack>
-              {/* [수정] 지시에 따라 삭제되었던 주석들 복원 */}
-              {/* [삭제] Paper 컴포넌트 제거 */}
-              {/* <Paper variant="outlined" sx={{ mt: 1, flex: 1, p: 2 }}> */}
-              {/* [수정] Paper를 제거하고 레이아웃 유지를 위해 Box 추가 */}
+
               <Box sx={{ mt: 1, flex: 1 }}>
-                {selectedJobTitle ? (
+                {isEvaluatorSectionVisible ? (
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={2}>
                       {/* 1차 평가자 */}
@@ -471,12 +468,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                     sx={{ height: '100%' }}
                   >
                     <Typography color="text.secondary" variant="body2">
-                      직책을 먼저 선택해주세요.
+                      상위 기본 정보 및 기준을 먼저 선택해주세요.
                     </Typography>
                   </Stack>
                 )}
               </Box>
-              {/* </Paper> */}
             </Box>
           </Stack>
 
