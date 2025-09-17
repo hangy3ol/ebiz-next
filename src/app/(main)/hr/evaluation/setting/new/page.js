@@ -7,6 +7,7 @@ import { makeYearOptions } from '@/common/utils/yearOptions';
 import { fetchEmployeeList } from '@/features/hr/employee/services/employeeService';
 import { fetchAdjustmentList } from '@/features/hr/evaluation/adjustment/services/adjustmentService';
 import { fetchCriteriaList } from '@/features/hr/evaluation/criteria/services/criteriaService';
+import SettingForm from '@/features/hr/evaluation/setting/components/SettingForm';
 
 export default async function NewSettingPage() {
   const [
@@ -60,5 +61,7 @@ export default async function NewSettingPage() {
   console.log(initialData);
   console.log(selectOptions);
 
-  return null;
+  return (
+    <SettingForm initialData={initialData} selectOptions={selectOptions} />
+  );
 }
