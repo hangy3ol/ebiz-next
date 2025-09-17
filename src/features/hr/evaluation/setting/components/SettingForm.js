@@ -38,10 +38,21 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [candidateList, setCandidateList] = useState([]);
   const [candidateKeyword, setCandidateKeyword] = useState('');
 
-  const [evaluatorOptions, setEvaluatorOptions] = useState({
+  const [evaluatorList, setEvaluatorList] = useState({
     step1: [],
     step2: [],
     step3: [],
+  });
+
+  const [selectedEvaluators, setSelectedEvaluators] = useState({
+    step1: '',
+    step2: '',
+    step3: '',
+  });
+  const [evaluatorWeights, setEvaluatorWeights] = useState({
+    step1: '',
+    step2: '',
+    step3: '',
   });
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
@@ -97,7 +108,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   useEffect(() => {
     const employeeList = initialData?.employeeList || [];
     if (!selectedJobTitle || employeeList.length === 0) {
-      setEvaluatorOptions({ step1: [], step2: [], step3: [] });
+      setEvaluatorList({ step1: [], step2: [], step3: [] });
       return;
     }
 
@@ -132,8 +143,30 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
       step3 = employeeList.filter((e) => e.userId === '21404');
     }
 
-    setEvaluatorOptions({ step1, step2, step3 });
+    setEvaluatorList({ step1, step2, step3 });
   }, [selectedJobTitle, selectedOffice, initialData]);
+
+  useEffect(() => {
+    if (selectedJobTitle === '01') {
+      setEvaluatorWeights({
+        step1: '40',
+        step2: '60',
+        step3: '',
+      });
+    } else if (selectedJobTitle === '02') {
+      setEvaluatorWeights({
+        step1: '60',
+        step2: '12',
+        step3: '28',
+      });
+    } else {
+      setEvaluatorWeights({
+        step1: '',
+        step2: '',
+        step3: '',
+      });
+    }
+  }, [selectedJobTitle]);
 
   const searchableCandidateFields = useMemo(
     () => ['userName', 'departmentName', 'positionName'],
@@ -150,6 +183,13 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     setMounted(true);
   }, []);
 
+  const handleEvaluatorChange = (step, value) => {
+    setSelectedEvaluators((prev) => ({ ...prev, [step]: value }));
+  };
+  const handleWeightChange = (step, value) => {
+    setEvaluatorWeights((prev) => ({ ...prev, [step]: value }));
+  };
+
   const handleOpenPreviewPopup = (basePath, id) => {
     const popupWidth = 800;
     const popupHeight = 600;
@@ -162,12 +202,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
       `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
     );
   };
-
-  const evaluatorCount = selectedJobTitle === '02' ? 3 : 2;
-  const evaluators = Array.from(
-    { length: evaluatorCount },
-    (_, i) => `${i + 1}차 평가자`,
-  );
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
@@ -321,40 +355,113 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   목록 적용
                 </Button>
               </Stack>
+              {/* [수정] 지시에 따라 삭제되었던 주석들 복원 */}
+              {/* [삭제] Paper 컴포넌트 제거 */}
+              {/* <Paper variant="outlined" sx={{ mt: 1, flex: 1, p: 2 }}> */}
+              {/* [수정] Paper를 제거하고 레이아웃 유지를 위해 Box 추가 */}
               <Box sx={{ mt: 1, flex: 1 }}>
                 {selectedJobTitle ? (
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={2}>
-                      {evaluators.map((label, index) => {
-                        const stepKey = `step${index + 1}`;
-                        const options = evaluatorOptions[stepKey] || [];
-                        return (
-                          <FormControl key={label} size="small" fullWidth>
-                            <InputLabel>{label}</InputLabel>
-                            <Select label={label} value="">
-                              {options.map((emp) => (
-                                <MenuItem key={emp.userId} value={emp.userId}>
-                                  {emp.userName}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        );
-                      })}
+                      {/* 1차 평가자 */}
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>1차 평가자</InputLabel>
+                        <Select
+                          label="1차 평가자"
+                          value={selectedEvaluators.step1}
+                          onChange={(e) =>
+                            handleEvaluatorChange('step1', e.target.value)
+                          }
+                        >
+                          {evaluatorList.step1.map((emp) => (
+                            <MenuItem key={emp.userId} value={emp.userId}>
+                              {emp.userName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      {/* 2차 평가자 */}
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>2차 평가자</InputLabel>
+                        <Select
+                          label="2차 평가자"
+                          value={selectedEvaluators.step2}
+                          onChange={(e) =>
+                            handleEvaluatorChange('step2', e.target.value)
+                          }
+                        >
+                          {evaluatorList.step2.map((emp) => (
+                            <MenuItem key={emp.userId} value={emp.userId}>
+                              {emp.userName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      {/* 3차 평가자 (조건부) */}
+                      {selectedJobTitle === '02' && (
+                        <FormControl size="small" fullWidth>
+                          <InputLabel>3차 평가자</InputLabel>
+                          <Select
+                            label="3차 평가자"
+                            value={selectedEvaluators.step3}
+                            onChange={(e) =>
+                              handleEvaluatorChange('step3', e.target.value)
+                            }
+                          >
+                            {evaluatorList.step3.map((emp) => (
+                              <MenuItem key={emp.userId} value={emp.userId}>
+                                {emp.userName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
                     </Stack>
                     <Stack direction="row" spacing={2}>
-                      {evaluators.map((label) => (
+                      {/* 1차 가중치 */}
+                      <TextField
+                        label="가중치 (%)"
+                        type="number"
+                        size="small"
+                        fullWidth
+                        value={evaluatorWeights.step1}
+                        onChange={(e) =>
+                          handleWeightChange('step1', e.target.value)
+                        }
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                      {/* 2차 가중치 */}
+                      <TextField
+                        label="가중치 (%)"
+                        type="number"
+                        size="small"
+                        fullWidth
+                        value={evaluatorWeights.step2}
+                        onChange={(e) =>
+                          handleWeightChange('step2', e.target.value)
+                        }
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                      {/* 3차 가중치 (조건부) */}
+                      {selectedJobTitle === '02' && (
                         <TextField
-                          key={label}
                           label="가중치 (%)"
                           type="number"
                           size="small"
                           fullWidth
+                          value={evaluatorWeights.step3}
+                          onChange={(e) =>
+                            handleWeightChange('step3', e.target.value)
+                          }
                           InputLabelProps={{
                             shrink: true,
                           }}
                         />
-                      ))}
+                      )}
                     </Stack>
                   </Stack>
                 ) : (
@@ -369,6 +476,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   </Stack>
                 )}
               </Box>
+              {/* </Paper> */}
             </Box>
           </Stack>
 
