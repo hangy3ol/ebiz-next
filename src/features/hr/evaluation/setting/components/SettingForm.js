@@ -10,7 +10,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  // [추가] FormControl 및 관련 컴포넌트 import
   FormControl,
   InputLabel,
   Select,
@@ -152,9 +151,20 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               </Paper>
             </Box>
             <Box>
-              <Typography variant="subtitle2" fontWeight="medium">
-                4. 평가자 선택
-              </Typography>
+              {/* [수정] 제목과 버튼을 한 줄에 배치 */}
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="subtitle2" fontWeight="medium">
+                  4. 평가자 선택
+                </Typography>
+                {/* [추가] '목록 적용' 버튼 */}
+                <Button variant="outlined" size="small" color="primary">
+                  목록 적용
+                </Button>
+              </Stack>
               <Paper variant="outlined" sx={{ mt: 1 }}>
                 <Stack
                   direction="row"
@@ -173,9 +183,21 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
           {/* 우측 데이터 그리드 */}
           <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="subtitle2" fontWeight="medium" sx={{ mb: 1 }}>
-              5. 평가설정 목록
-            </Typography>
+            {/* [수정] 제목과 버튼을 한 줄에 배치 */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 1 }}
+            >
+              <Typography variant="subtitle2" fontWeight="medium">
+                5. 평가설정 목록
+              </Typography>
+              {/* [추가] '목록 제외' 버튼 */}
+              <Button variant="outlined" size="small" color="error">
+                목록 제외
+              </Button>
+            </Stack>
             <Box sx={{ flex: 1, overflow: 'auto' }}>
               {mounted ? (
                 <DataGrid
