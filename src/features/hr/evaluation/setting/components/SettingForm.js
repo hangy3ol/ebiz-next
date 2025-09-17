@@ -39,6 +39,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
   useEffect(() => {
+    // ... 제목 자동 생성 로직 ...
     if (!isEditMode) {
       const { year, office, jobGroup, jobTitle } = selectOptions || {};
       if (
@@ -86,6 +87,19 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleOpenPreviewPopup = (path, id) => {
+    const popupWidth = 800;
+    const popupHeight = 600;
+    const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+    const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+
+    window.open(
+      `${path}/${id}`,
+      '_blank',
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
+    );
+  };
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
@@ -214,7 +228,17 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                           }
                         >
                           <ListItemText primary={criterion.title} />
-                          <IconButton size="small">
+                          {/* [수정] onClick 이벤트 핸들러 추가 */}
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation(); // 이벤트 버블링 방지
+                              handleOpenPreviewPopup(
+                                '/popup/hr/evaluation/criteria',
+                                criterion.criteriaMasterId,
+                              );
+                            }}
+                          >
                             <PreviewIcon fontSize="small" />
                           </IconButton>
                         </ListItemButton>
@@ -275,6 +299,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             </Box>
           </Stack>
 
+          {/* ... 나머지 코드 ... */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
