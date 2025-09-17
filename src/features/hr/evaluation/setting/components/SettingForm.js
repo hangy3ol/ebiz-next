@@ -1,5 +1,6 @@
 'use client';
 
+import PreviewIcon from '@mui/icons-material/Preview';
 import {
   Box,
   Button,
@@ -15,6 +16,8 @@ import {
   Select,
   MenuItem,
   TextField,
+  ListItemButton,
+  IconButton,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
@@ -30,12 +33,14 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
   const [title, setTitle] = useState('');
 
+  const [filteredCriteria, setFilteredCriteria] = useState([]);
+  const [selectedCriteriaId, setSelectedCriteriaId] = useState(null);
+
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
   useEffect(() => {
     if (!isEditMode) {
       const { year, office, jobGroup, jobTitle } = selectOptions || {};
-
       if (
         !selectedYear ||
         !selectedOffice ||
@@ -45,12 +50,10 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
         setTitle('');
         return;
       }
-
       const yearName = getName(year, selectedYear);
       const officeName = getName(office, selectedOffice);
       const jobGroupName = getName(jobGroup, selectedJobGroup);
       const jobTitleName = getName(jobTitle, selectedJobTitle);
-
       setTitle(
         `${yearName} 귀속 ${officeName} ${jobGroupName} ${jobTitleName} 인사평가`,
       );
@@ -63,6 +66,22 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     selectOptions,
     isEditMode,
   ]);
+
+  useEffect(() => {
+    const { criteriaList } = initialData || {};
+    if (!criteriaList) return;
+
+    if (selectedJobGroup && selectedJobTitle) {
+      const filtered = criteriaList.filter(
+        (item) =>
+          item.jobGroupCode === selectedJobGroup &&
+          item.jobTitleCode === selectedJobTitle,
+      );
+      setFilteredCriteria(filtered);
+    } else {
+      setFilteredCriteria([]);
+    }
+  }, [selectedJobGroup, selectedJobTitle, initialData]);
 
   useEffect(() => {
     setMounted(true);
@@ -83,10 +102,10 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
         </Stack>
       </Stack>
 
-      {/* 메인 컨텐츠 영역 */}
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack direction="row" spacing={2}>
+            {/* ... 마스터 데이터 입력 폼 ... */}
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>평가귀속년도</InputLabel>
               <Select
@@ -101,7 +120,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
-
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>사업부</InputLabel>
               <Select
@@ -116,7 +134,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
-
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직군</InputLabel>
               <Select
@@ -131,7 +148,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
-
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직책</InputLabel>
               <Select
@@ -146,15 +162,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
-
             <TextField
               label="제목"
               size="small"
               fullWidth
               value={title}
-              InputProps={{
-                readOnly: true,
-              }}
+              InputProps={{ readOnly: true }}
               placeholder="상위 항목을 모두 선택하세요"
             />
           </Stack>
@@ -171,26 +184,88 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             overflow: 'auto',
           }}
         >
-          {/* 좌측 정보 패널 1 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+              }}
+            >
               <Typography variant="subtitle2" fontWeight="medium">
                 1. 평가기준 선택
               </Typography>
-              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
-                <List dense>
-                  <ListItem>
-                    <ListItemText primary={'항목 없음'} />
-                  </ListItem>
-                </List>
+              <Paper
+                variant="outlined"
+                sx={{ mt: 1, flex: 1, overflow: 'auto' }}
+              >
+                {selectedJobGroup && selectedJobTitle ? (
+                  <List dense>
+                    {filteredCriteria.length > 0 ? (
+                      filteredCriteria.map((criterion) => (
+                        <ListItemButton
+                          key={criterion.criteriaMasterId}
+                          selected={
+                            selectedCriteriaId === criterion.criteriaMasterId
+                          }
+                          onClick={() =>
+                            setSelectedCriteriaId(criterion.criteriaMasterId)
+                          }
+                        >
+                          <ListItemText primary={criterion.title} />
+                          <IconButton size="small">
+                            <PreviewIcon fontSize="small" />
+                          </IconButton>
+                        </ListItemButton>
+                      ))
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                        }}
+                      >
+                        <Typography color="text.secondary">
+                          해당 조건의 평가 기준이 없습니다.
+                        </Typography>
+                      </Box>
+                    )}
+                  </List>
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                    }}
+                  >
+                    <Typography color="text.secondary">
+                      상단 직군, 직책을 먼저 선택해주세요.
+                    </Typography>
+                  </Box>
+                )}
               </Paper>
             </Box>
 
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+              }}
+            >
               <Typography variant="subtitle2" fontWeight="medium">
                 2. 감/가점 기준 선택
               </Typography>
-              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
+              <Paper
+                variant="outlined"
+                sx={{ mt: 1, flex: 1, overflow: 'auto' }}
+              >
                 <List dense>
                   <ListItem>
                     <ListItemText primary={'항목 없음'} />
@@ -200,7 +275,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             </Box>
           </Stack>
 
-          {/* 좌측 정보 패널 2 */}
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" fontWeight="medium">
@@ -243,7 +317,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             </Box>
           </Stack>
 
-          {/* 우측 데이터 그리드 */}
           <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
             <Stack
               direction="row"
@@ -301,9 +374,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   }}
                   disableColumnMenu
                   initialState={{
-                    pagination: {
-                      paginationModel: { page: 0, pageSize: 100 },
-                    },
+                    pagination: { paginationModel: { page: 0, pageSize: 100 } },
                   }}
                   pageSizeOptions={[100]}
                 />
