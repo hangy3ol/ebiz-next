@@ -36,7 +36,7 @@ export default function CriteriaForm({
   selectOptions,
 }) {
   const router = useRouter();
-  const isEdit = mode === 'edit';
+  const isEditMode = mode === 'edit';
   const { year = [], jobGroup = [], jobTitle = [] } = selectOptions || {};
 
   const [criteriaMasterId, setCriteriaMasterId] = useState(null);
@@ -76,7 +76,7 @@ export default function CriteriaForm({
   }, [handleCopyCallback]);
 
   useEffect(() => {
-    if (isEdit && initialData) {
+    if (isEditMode && initialData) {
       const { master, detail: detailData } = initialData;
 
       setCriteriaMasterId(master.criteriaMasterId);
@@ -95,9 +95,9 @@ export default function CriteriaForm({
         payload: detailData,
       });
     }
-  }, [isEdit, initialData, year]);
+  }, [isEditMode, initialData, year]);
 
-  const isSaveDisabled = isEdit
+  const isSaveDisabled = isEditMode
     ? false
     : !selectedYear || !selectedJobGroup || !selectedJobTitle;
 
@@ -178,7 +178,7 @@ export default function CriteriaForm({
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
   useEffect(() => {
-    if (!isEdit) {
+    if (!isEditMode) {
       if (!selectedYear || !selectedJobGroup || !selectedJobTitle) {
         setTitle('');
         return;
@@ -195,7 +195,7 @@ export default function CriteriaForm({
     year,
     jobGroup,
     jobTitle,
-    isEdit,
+    isEditMode,
   ]);
 
   const handleSave = async () => {
@@ -266,7 +266,7 @@ export default function CriteriaForm({
         }}
       >
         <Typography variant="h4">
-          {isEdit ? '평가 기준 수정' : '평가 기준 등록'}
+          {isEditMode ? '평가 기준 수정' : '평가 기준 등록'}
         </Typography>
         <Stack direction="row" gap={1}>
           <Button
@@ -315,7 +315,11 @@ export default function CriteriaForm({
             spacing={2}
             sx={{ mb: 2 }}
           >
-            <FormControl size="small" sx={{ minWidth: 140 }} disabled={isEdit}>
+            <FormControl
+              size="small"
+              sx={{ minWidth: 140 }}
+              disabled={isEditMode}
+            >
               <InputLabel>연도</InputLabel>
               <Select
                 label="연도"
@@ -330,7 +334,11 @@ export default function CriteriaForm({
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 160 }} disabled={isEdit}>
+            <FormControl
+              size="small"
+              sx={{ minWidth: 160 }}
+              disabled={isEditMode}
+            >
               <InputLabel>직군</InputLabel>
               <Select
                 label="직군"
@@ -345,7 +353,11 @@ export default function CriteriaForm({
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 160 }} disabled={isEdit}>
+            <FormControl
+              size="small"
+              sx={{ minWidth: 160 }}
+              disabled={isEditMode}
+            >
               <InputLabel>직책</InputLabel>
               <Select
                 label="직책"
@@ -366,7 +378,7 @@ export default function CriteriaForm({
               fullWidth
               value={title}
               InputProps={{ readOnly: true }}
-              disabled={isEdit}
+              disabled={isEditMode}
               placeholder="연도·직군·직책을 모두 선택하세요"
             />
 
@@ -377,7 +389,7 @@ export default function CriteriaForm({
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
               placeholder="비고(선택)"
-              disabled={isEdit}
+              disabled={isEditMode}
             />
           </Stack>
 
@@ -410,7 +422,7 @@ export default function CriteriaForm({
             detail={detail}
             containerSx={{ flex: 1, minHeight: 0 }}
             onCellClick={handleOpenEditDialog}
-            isEditable={true}
+            isEditModeable={true}
           />
         </Paper>
       </Box>

@@ -62,6 +62,10 @@ export default async function NewSettingPage() {
   console.log(selectOptions);
 
   return (
-    <SettingForm initialData={initialData} selectOptions={selectOptions} />
+    <SettingForm
+      mode="new"
+      initialData={initialData}
+      selectOptions={selectOptions}
+    />
   );
 }

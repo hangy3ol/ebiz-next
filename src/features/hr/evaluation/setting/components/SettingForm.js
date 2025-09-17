@@ -15,8 +15,11 @@ import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useState, useEffect } from 'react';
 
-export default function SettingForm() {
+export default function SettingForm({ mode, initialData, selectOptions }) {
   const [mounted, setMounted] = useState(false);
+
+  // [추가] mode 값에 따라 수정 모드 여부를 판단하는 변수
+  const isEditMode = mode === 'edit';
 
   useEffect(() => {
     setMounted(true);
@@ -26,7 +29,9 @@ export default function SettingForm() {
     <Stack spacing={2} sx={{ height: '100%' }}>
       {/* 상단 헤더 */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4">평가 설정 등록</Typography>
+        <Typography variant="h4">
+          {isEditMode ? '평가 설정 수정' : '평가 설정 등록'}
+        </Typography>
         <Button variant="text">목록</Button>
       </Stack>
 
@@ -38,7 +43,6 @@ export default function SettingForm() {
           alignItems="center"
         >
           <Typography variant="h5" fontWeight="bold" noWrap>
-            {/* 이 부분은 향후 입력 필드로 대체될 것입니다. */}
             신규 평가 설정
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
