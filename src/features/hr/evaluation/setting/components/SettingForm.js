@@ -19,6 +19,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 import { matchIncludes } from '@/common/utils/filters';
 import AdjustmentPanel from '@/features/hr/evaluation/setting/components/AdjustmentPanel';
+import CandidatePanel from '@/features/hr/evaluation/setting/components/CandidatePanel';
 import CriteriaPanel from '@/features/hr/evaluation/setting/components/CriteriaPanel';
 
 export default function SettingForm({ mode, initialData, selectOptions }) {
@@ -237,102 +238,21 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           </Stack>
 
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Box
-              sx={{
-                flex: 7,
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 0,
-              }}
-            >
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Typography variant="subtitle2" fontWeight="medium">
-                  3. 대상자 선택
-                </Typography>
-                <TextField
-                  size="small"
-                  variant="outlined"
-                  placeholder="키워드 검색"
-                  value={candidateKeyword}
-                  onChange={(e) => setCandidateKeyword(e.target.value)}
-                />
-              </Stack>
-
-              <Box sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
-                {selectedYear &&
-                selectedOffice &&
-                selectedJobGroup &&
-                selectedJobTitle &&
-                selectedCriteriaId &&
-                selectedAdjustmentId ? (
-                  <DataGrid
-                    // [수정] 필터링된 목록을 DataGrid에 전달
-                    rows={filteredCandidateList}
-                    columns={[
-                      { field: 'userName', headerName: '성명', flex: 1 },
-                      {
-                        field: 'departmentName',
-                        headerName: '부서',
-                        flex: 1.5,
-                      },
-                      { field: 'positionName', headerName: '직위', flex: 1 },
-                      {
-                        field: 'jobTitleName',
-                        headerName: '직책',
-                        flex: 1,
-                      },
-                    ]}
-                    getRowId={(row) => row.userId}
-                    density="compact"
-                    localeText={{
-                      ...koKR.components.MuiDataGrid.defaultProps.localeText,
-                      noRowsLabel: '등록된 데이터가 없습니다.',
-                    }}
-                    checkboxSelection
-                    pageSizeOptions={[100]}
-                    initialState={{
-                      pagination: {
-                        paginationModel: { page: 0, pageSize: 100 },
-                      },
-                    }}
-                    slotProps={{
-                      loadingOverlay: {
-                        variant: 'linear-progress',
-                        noRowsVariant: 'linear-progress',
-                      },
-                    }}
-                    sx={{
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer',
-                      },
-                    }}
-                  />
-                ) : (
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                      p: 1,
-                    }}
-                  >
-                    <Typography
-                      color="text.secondary"
-                      textAlign="center"
-                      variant="body2"
-                    >
-                      기본 정보와 평가 기준, 감/가점 기준을 먼저 선택해주세요.
-                    </Typography>
-                  </Paper>
-                )}
-              </Box>
-            </Box>
+            <CandidatePanel
+              enabled={
+                !!(
+                  selectedYear &&
+                  selectedOffice &&
+                  selectedJobGroup &&
+                  selectedJobTitle &&
+                  selectedCriteriaId &&
+                  selectedAdjustmentId
+                )
+              }
+              list={filteredCandidateList}
+              keyword={candidateKeyword}
+              onKeywordChange={setCandidateKeyword}
+            />
 
             <Box sx={{ flex: 3, display: 'flex', flexDirection: 'column' }}>
               <Stack
