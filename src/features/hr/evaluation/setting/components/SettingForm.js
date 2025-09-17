@@ -12,9 +12,6 @@ import {
   Select,
   MenuItem,
   TextField,
-  List,
-  ListItem,
-  ListItemText,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
@@ -35,6 +32,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
   const [selectedCriteriaId, setSelectedCriteriaId] = useState(null);
   const [selectedAdjustmentId, setSelectedAdjustmentId] = useState(null);
+
+  const [candidateList, setCandidateList] = useState([]);
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
@@ -66,6 +65,23 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     selectOptions,
     isEditMode,
   ]);
+
+  useEffect(() => {
+    const { employeeList } = initialData || {};
+    if (!employeeList) return;
+
+    if (selectedOffice && selectedJobGroup && selectedJobTitle) {
+      const filtered = employeeList.filter(
+        (emp) =>
+          emp.officeId === selectedOffice &&
+          emp.jobGroupCode === selectedJobGroup &&
+          emp.jobTitleCode === selectedJobTitle,
+      );
+      setCandidateList(filtered);
+    } else {
+      setCandidateList([]);
+    }
+  }, [selectedOffice, selectedJobGroup, selectedJobTitle, initialData]);
 
   useEffect(() => {
     setMounted(true);
@@ -185,6 +201,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               list={initialData?.criteriaList || []}
               selectedJobGroup={selectedJobGroup}
               selectedJobTitle={selectedJobTitle}
+              enabled={!!(selectedJobGroup && selectedJobTitle)}
               selectedId={selectedCriteriaId}
               onSelect={setSelectedCriteriaId}
               onPreview={(id) =>
@@ -206,16 +223,70 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           </Stack>
 
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+              }}
+            >
               <Typography variant="subtitle2" fontWeight="medium">
                 3. 대상자 선택
               </Typography>
-              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
-                <List dense>
-                  <ListItem>
-                    <ListItemText primary={'대상자 없음'} />
-                  </ListItem>
-                </List>
+              <Paper
+                variant="outlined"
+                sx={{ mt: 1, flex: 1, overflow: 'auto' }}
+              >
+                {selectedYear &&
+                selectedOffice &&
+                selectedJobGroup &&
+                selectedJobTitle &&
+                selectedCriteriaId &&
+                selectedAdjustmentId ? (
+                  <DataGrid
+                    rows={candidateList}
+                    columns={[
+                      { field: 'userName', headerName: '성명', flex: 1 },
+                      {
+                        field: 'departmentName',
+                        headerName: '부서',
+                        flex: 1.5,
+                      },
+                      { field: 'positionName', headerName: '직위', flex: 1 },
+                      {
+                        field: 'jobTitleName',
+                        headerName: '직책',
+                        flex: 1,
+                      },
+                    ]}
+                    getRowId={(row) => row.userId}
+                    density="compact"
+                    localeText={{
+                      ...koKR.components.MuiDataGrid.defaultProps.localeText,
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      p: 1,
+                    }}
+                  >
+                    <Typography
+                      color="text.secondary"
+                      textAlign="center"
+                      variant="body2"
+                    >
+                      상단의 모든 항목을
+                      <br />
+                      먼저 선택해주세요.
+                    </Typography>
+                  </Box>
+                )}
               </Paper>
             </Box>
             <Box>
