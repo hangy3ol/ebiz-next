@@ -36,8 +36,13 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [selectedAdjustmentId, setSelectedAdjustmentId] = useState(null);
 
   const [candidateList, setCandidateList] = useState([]);
-
   const [candidateKeyword, setCandidateKeyword] = useState('');
+
+  const [evaluatorOptions, setEvaluatorOptions] = useState({
+    step1: [],
+    step2: [],
+    step3: [],
+  });
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
@@ -87,6 +92,42 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     }
   }, [selectedOffice, selectedJobGroup, selectedJobTitle, initialData]);
 
+  useEffect(() => {
+    const employeeList = initialData?.employeeList || [];
+    if (!selectedJobTitle || employeeList.length === 0) {
+      setEvaluatorOptions({ step1: [], step2: [], step3: [] });
+      return;
+    }
+
+    let step1 = [];
+    let step2 = [];
+    let step3 = [];
+
+    if (selectedJobTitle === '01') {
+      step1 = employeeList
+        .filter((e) => e.executiveYn === 'Y')
+        .filter((e) => e.userId !== '21001')
+        .filter((e) => e.userId !== '21404')
+        .filter((e) => e.userId !== '82001');
+
+      step2 = employeeList.filter((e) => e.userId === '21404');
+    } else if (selectedJobTitle === '02') {
+      step1 = employeeList
+        .filter((e) => e.officeId === selectedOffice)
+        .filter((e) => e.jobTitleCode === '01');
+
+      step2 = employeeList
+        .filter((e) => e.executiveYn === 'Y')
+        .filter((e) => e.userId !== '21001')
+        .filter((e) => e.userId !== '21404')
+        .filter((e) => e.userId !== '82001');
+
+      step3 = employeeList.filter((e) => e.userId === '21404');
+    }
+
+    setEvaluatorOptions({ step1, step2, step3 });
+  }, [selectedJobTitle, selectedOffice, initialData]);
+
   const searchableCandidateFields = useMemo(
     () => ['userName', 'departmentName', 'positionName'],
     [],
@@ -114,6 +155,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
       `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
     );
   };
+
+  const evaluatorCount = selectedJobTitle === '02' ? 3 : 2;
+  const evaluators = Array.from(
+    { length: evaluatorCount },
+    (_, i) => `${i + 1}차 평가자`,
+  );
 
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
@@ -254,7 +301,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               onKeywordChange={setCandidateKeyword}
             />
 
-            <Box sx={{ flex: 3, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Stack
                 direction="row"
                 justifyContent="space-between"
@@ -267,19 +314,54 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   목록 적용
                 </Button>
               </Stack>
-              <Paper variant="outlined" sx={{ mt: 1, flex: 1 }}>
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ p: 1, minHeight: '80px' }}
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Typography color="text.secondary">
-                    선택된 대상자의 평가자 정보가 없습니다.
-                  </Typography>
-                </Stack>
-              </Paper>
+              <Box sx={{ mt: 1, flex: 1 }}>
+                {selectedJobTitle ? (
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={2}>
+                      {evaluators.map((label, index) => {
+                        const stepKey = `step${index + 1}`;
+                        const options = evaluatorOptions[stepKey] || [];
+                        return (
+                          <FormControl key={label} size="small" fullWidth>
+                            <InputLabel>{label}</InputLabel>
+                            <Select label={label} value="">
+                              {options.map((emp) => (
+                                <MenuItem key={emp.userId} value={emp.userId}>
+                                  {emp.userName}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        );
+                      })}
+                    </Stack>
+                    <Stack direction="row" spacing={2}>
+                      {evaluators.map((label) => (
+                        <TextField
+                          key={label}
+                          label="가중치 (%)"
+                          type="number"
+                          size="small"
+                          fullWidth
+                          InputLabelProps={{
+                            shrink: true,
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  </Stack>
+                ) : (
+                  <Stack
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{ height: '100%' }}
+                  >
+                    <Typography color="text.secondary" variant="body2">
+                      직책을 먼저 선택해주세요.
+                    </Typography>
+                  </Stack>
+                )}
+              </Box>
             </Box>
           </Stack>
 

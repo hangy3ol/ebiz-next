@@ -13,7 +13,7 @@ export default function CandidatePanel({
   return (
     <Box
       sx={{
-        flex: 7,
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
