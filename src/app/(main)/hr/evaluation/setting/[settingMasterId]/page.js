@@ -36,7 +36,5 @@ export default async function SettingViewPage({ params }) {
     employeeList: employeeResult.success ? employeeResult.result : [],
   };
 
-  console.log(initialData);
-
   return <SettingView initialData={initialData} />;
 }

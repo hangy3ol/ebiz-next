@@ -6,10 +6,9 @@ import { makeYearOptions } from '@/common/utils/yearOptions';
 import CriteriaForm from '@/features/hr/evaluation/criteria/components/CriteriaForm';
 
 export default async function NewCriteriaPage() {
-  // 선택옵션
   const [yearResult, jobGroupResult, jobTitleResult] = await Promise.all([
     makeYearOptions({
-      startYear: 2023,
+      startYear: new Date().getFullYear(),
       range: 5,
       mode: 'forward',
       order: 'asc',
@@ -19,6 +18,7 @@ export default async function NewCriteriaPage() {
   ]);
 
   const selectOptions = {
+    year: [],
     jobGroup: [],
     jobTitle: [],
   };

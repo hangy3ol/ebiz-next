@@ -54,6 +54,11 @@ export default function SettingView({ initialData }) {
     setSettingSelectedRow(params.row);
   };
 
+  // 수정
+  const handleEdit = () => {
+    router.push(`/hr/evaluation/setting/${master.settingMasterId}/edit`);
+  };
+
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -75,7 +80,9 @@ export default function SettingView({ initialData }) {
             {master?.title || '제목 없음'}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-            <Button variant="contained">수정</Button>
+            <Button variant="contained" onClick={handleEdit}>
+              수정
+            </Button>
             <Button variant="outlined" color="error">
               삭제
             </Button>
