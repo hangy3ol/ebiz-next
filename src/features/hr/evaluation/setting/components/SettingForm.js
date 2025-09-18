@@ -6,15 +6,12 @@ import {
   Paper,
   Stack,
   Typography,
-  Skeleton,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   TextField,
 } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import { koKR } from '@mui/x-data-grid/locales';
 import { useState, useEffect, useMemo } from 'react';
 
 import { useGridSelection } from '@/common/hooks/useGridSelection';
@@ -23,6 +20,7 @@ import AdjustmentPanel from '@/features/hr/evaluation/setting/components/Adjustm
 import CandidatePanel from '@/features/hr/evaluation/setting/components/CandidatePanel';
 import CriteriaPanel from '@/features/hr/evaluation/setting/components/CriteriaPanel';
 import EvaluatorPanel from '@/features/hr/evaluation/setting/components/EvaluatorPanel';
+import SettingDetailPanel from '@/features/hr/evaluation/setting/components/SettingDetailPanel';
 
 export default function SettingForm({ mode, initialData, selectOptions }) {
   const [mounted, setMounted] = useState(false);
@@ -550,106 +548,14 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           </Stack>
 
           <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              sx={{ mb: 1 }}
-            >
-              <Typography variant="subtitle2" fontWeight="medium">
-                5. 평가설정 목록
-              </Typography>
-
-              <Button
-                variant="outlined"
-                size="small"
-                color="error"
-                disabled={settingListSelectionModel.ids.size === 0}
-                onClick={handleExcludeFromList}
-              >
-                목록 제외
-              </Button>
-            </Stack>
-
-            <Box sx={{ flex: 1, overflow: 'auto' }}>
-              {mounted ? (
-                <DataGrid
-                  rows={visibleSettingList}
-                  getRowId={(row) => row.evaluateeId}
-                  columns={[
-                    {
-                      field: 'evaluateeName',
-                      headerName: '대상자명',
-                      flex: 0.8,
-                    },
-                    {
-                      field: 'criteriaMasterTitle',
-                      headerName: '평가기준',
-                      flex: 1.5,
-                    },
-                    {
-                      field: 'adjustmentMasterTitle',
-                      headerName: '감/가점 기준',
-                      flex: 1,
-                    },
-                    {
-                      field: 'evaluatorName1',
-                      headerName: '1차 평가자',
-                      flex: 1,
-
-                      valueGetter: (value, row) =>
-                        `${value || '-'} (${row.evaluatorWeight1 || '0'}%)`,
-                    },
-                    {
-                      field: 'evaluatorName2',
-                      headerName: '2차 평가자',
-                      flex: 1,
-
-                      valueGetter: (value, row) =>
-                        `${value || '-'} (${row.evaluatorWeight2 || '0'}%)`,
-                    },
-                    {
-                      field: 'evaluatorName3',
-                      headerName: '3차 평가자',
-                      flex: 1,
-
-                      valueGetter: (value, row) =>
-                        `${value || '-'} (${row.evaluatorWeight3 || '0'}%)`,
-                    },
-                  ]}
-                  density="compact"
-                  localeText={{
-                    ...koKR.components.MuiDataGrid.defaultProps.localeText,
-                    noRowsLabel: '등록된 데이터가 없습니다.',
-                  }}
-                  disableColumnMenu
-                  initialState={{
-                    pagination: {
-                      paginationModel: { page: 0, pageSize: 100 },
-                    },
-                  }}
-                  pageSizeOptions={[100]}
-                  onRowClick={handleSettingRowClick}
-                  checkboxSelection
-                  rowSelectionModel={settingListSelectionModel}
-                  onRowSelectionModelChange={handleSettingListSelectionChange}
-                  disableRowSelectionOnClick
-                  slotProps={{
-                    loadingOverlay: {
-                      variant: 'linear-progress',
-                      noRowsVariant: 'linear-progress',
-                    },
-                  }}
-                  sx={{
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer',
-                    },
-                  }}
-                />
-              ) : (
-                <Skeleton variant="rounded" height="100%" animation="wave" />
-              )}
-            </Box>
+            <SettingDetailPanel
+              isMounted={mounted}
+              list={visibleSettingList}
+              selectionModel={settingListSelectionModel}
+              onExclude={handleExcludeFromList}
+              onRowClick={handleSettingRowClick}
+              onSelectionChange={handleSettingListSelectionChange}
+            />
           </Box>
         </Paper>
       </Stack>
