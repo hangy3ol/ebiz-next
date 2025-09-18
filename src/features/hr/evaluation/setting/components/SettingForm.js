@@ -337,6 +337,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <CandidatePanel
+              isMounted={mounted}
               enabled={isEvaluatorSectionVisible}
               list={filteredCandidateList}
               keyword={candidateKeyword}
