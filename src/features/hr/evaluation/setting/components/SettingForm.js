@@ -238,89 +238,78 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     getRowId: (row) => row.userId,
   });
 
-  // [수정] 목록 적용 버튼 클릭 핸들러
+  // [수정] 목록 적용 버튼 클릭 핸들러 (Upsert 로직 적용)
   const handleApplyToList = () => {
-    // [추가] 헬퍼 함수: ID로 평가자 이름 찾기
     const getEvaluatorName = (step, id) => {
       if (!id) return null;
       const list = evaluatorList[step] || [];
       return list.find((e) => e.userId === id)?.userName || null;
     };
 
-    // [추가] 선택된 평가자 정보 미리 찾아두기
     const evaluatorName1 = getEvaluatorName('step1', selectedEvaluators.step1);
     const evaluatorName2 = getEvaluatorName('step2', selectedEvaluators.step2);
     const evaluatorName3 = getEvaluatorName('step3', selectedEvaluators.step3);
 
-    // [추가] 선택된 대상자 ID 목록 가져오기
     const selectedCandidateIds = Array.from(candidateSelectionModel.ids);
 
-    // [추가] 각 대상자별로 설정 상세 객체를 생성하여 배열로 만듦
-    const newSettingDetails = selectedCandidateIds
-      .map((candidateId) => {
-        // 목록에서 현재 대상자 정보 찾기
+    // [수정] 그리드 데이터 업데이트 로직 변경
+    setSettingList((prevList) => {
+      // 1. 기존 리스트를 빠른 조회를 위해 Map으로 변환
+      const listMap = new Map(prevList.map((item) => [item.evaluateeId, item]));
+
+      // 2. 선택된 대상자 목록을 순회하며 Map에 업데이트 또는 추가
+      selectedCandidateIds.forEach((candidateId) => {
         const candidate = candidateList.find((c) => c.userId === candidateId);
+        if (!candidate) return;
 
-        // 대상자 정보가 없으면 생성 중단
-        if (!candidate) return null;
+        const existingItem = listMap.get(candidateId);
 
-        const detail = {
-          // 이전 단계에서 추가한 속성
-          settingDetailId: crypto.randomUUID(),
+        // 현재 폼에 설정된 값들로 새로운 데이터 객체 생성
+        const newSettingData = {
           criteriaMasterId: selectedCriteria?.id,
           criteriaMasterTitle: selectedCriteria?.title,
           adjustmentMasterId: selectedAdjustment?.id,
           adjustmentMasterTitle: selectedAdjustment?.title,
-
-          // [추가] 1. 대상자 정보 할당
           evaluateeId: candidate.userId,
           evaluateeName: candidate.userName,
-
-          // [추가] 2. 평가자 정보 할당
           evaluatorId1: selectedEvaluators.step1 || null,
           evaluatorName1,
           evaluatorWeight1: evaluatorWeights.step1 || null,
           evaluatorId2: selectedEvaluators.step2 || null,
           evaluatorName2,
           evaluatorWeight2: evaluatorWeights.step2 || null,
-          evaluatorId3: null, // 3차 평가자는 기본적으로 null
-          evaluatorName3: null,
-          evaluatorWeight3: null,
-
-          // [추가] 3. 직군/직책 코드 할당
+          evaluatorId3:
+            selectedJobTitle === '02' ? selectedEvaluators.step3 || null : null,
+          evaluatorName3: selectedJobTitle === '02' ? evaluatorName3 : null,
+          evaluatorWeight3:
+            selectedJobTitle === '02' ? evaluatorWeights.step3 || null : null,
           jobGroupCode: selectedJobGroup,
           jobTitleCode: selectedJobTitle,
-
-          // [추가] 4. 액션 상태 할당
-          action: 'insert',
         };
 
-        // 직책이 팀원('02')일 경우에만 3차 평가자 정보 추가
-        if (selectedJobTitle === '02') {
-          detail.evaluatorId3 = selectedEvaluators.step3 || null;
-          detail.evaluatorName3 = evaluatorName3;
-          detail.evaluatorWeight3 = evaluatorWeights.step3 || null;
+        if (existingItem) {
+          // [수정] 기존 항목이 있으면 덮어쓰기 (Update)
+          listMap.set(candidateId, {
+            ...existingItem, // settingDetailId 등 기존 값 유지
+            ...newSettingData, // 새로운 설정 값으로 덮어쓰기
+            // 'edit' 모드이고, 기존 항목이 서버에서 불러온 데이터('insert'가 아닌)였다면 'update'로 설정
+            action:
+              isEditMode && existingItem.action !== 'insert'
+                ? 'update'
+                : 'insert',
+          });
+        } else {
+          // [수정] 기존 항목이 없으면 새로 추가 (Insert)
+          listMap.set(candidateId, {
+            ...newSettingData,
+            settingDetailId: crypto.randomUUID(), // 새 ID 발급
+            action: 'insert', // 새 항목은 항상 'insert'
+          });
         }
+      });
 
-        return detail;
-      })
-      .filter(Boolean); // 혹시 모를 null 값 제거
-
-    // [수정] 생성된 객체 '배열'을 콘솔에 출력
-    console.log(newSettingDetails);
-
-    // [추가] 그리드 데이터 업데이트
-    setSettingList((prevList) => {
-      // 새로 추가된 목록을 Map으로 변환하여 빠른 조회를 가능하게 함
-      const newDetailsMap = new Map(
-        newSettingDetails.map((item) => [item.evaluateeId, item]),
-      );
-      // 기존 목록에서 새로 추가된 대상자와 중복되지 않는 항목만 필터링
-      const updatedList = prevList.filter(
-        (item) => !newDetailsMap.has(item.evaluateeId),
-      );
-      // 필터링된 기존 목록과 새로운 목록을 합쳐서 최종 목록 반환
-      return [...updatedList, ...newSettingDetails];
+      // 3. 업데이트된 Map을 다시 배열로 변환하여 반환
+      return Array.from(listMap.values());
     });
   };
 
