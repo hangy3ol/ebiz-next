@@ -238,7 +238,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     getRowId: (row) => row.userId,
   });
 
-  // [추가] 5번 그리드의 행 선택 상태를 제어하기 위한 커스텀 훅
   const {
     rowSelectionModel: settingListSelectionModel,
     onRowSelectionModelChange: handleSettingListSelectionChange,
@@ -247,7 +246,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     getRowId: (row) => row.evaluateeId,
   });
 
-  // [수정] 목록 적용 버튼 클릭 핸들러 (Upsert 로직 적용)
   const handleApplyToList = () => {
     const getEvaluatorName = (step, id) => {
       if (!id) return null;
@@ -261,7 +259,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
     const selectedCandidateIds = Array.from(candidateSelectionModel.ids);
 
-    // [수정] 그리드 데이터 업데이트 로직 변경
     setSettingList((prevList) => {
       // 1. 기존 리스트를 빠른 조회를 위해 Map으로 변환
       const listMap = new Map(prevList.map((item) => [item.evaluateeId, item]));
@@ -297,7 +294,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
         };
 
         if (existingItem) {
-          // [수정] 기존 항목이 있으면 덮어쓰기 (Update)
+          // 기존 항목이 있으면 덮어쓰기 (Update)
           listMap.set(candidateId, {
             ...existingItem, // settingDetailId 등 기존 값 유지
             ...newSettingData, // 새로운 설정 값으로 덮어쓰기
@@ -308,7 +305,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 : 'insert',
           });
         } else {
-          // [수정] 기존 항목이 없으면 새로 추가 (Insert)
+          // 기존 항목이 없으면 새로 추가 (Insert)
           listMap.set(candidateId, {
             ...newSettingData,
             settingDetailId: crypto.randomUUID(), // 새 ID 발급
@@ -357,6 +354,38 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
       step3: String(row.evaluatorWeight3 || ''),
     });
   };
+
+  // '목록 제외' 버튼 클릭 핸들러
+  const handleExcludeFromList = () => {
+    setSettingList((prevList) => {
+      const selectedIds = settingListSelectionModel.ids;
+      // 기존 리스트를 순회하며 새로운 리스트를 생성
+      return prevList.reduce((acc, item) => {
+        // 현재 항목이 선택된 항목인지 확인
+        if (selectedIds.has(item.evaluateeId)) {
+          // 요구사항 2: action이 'insert'인 신규 항목이면 리스트에서 완전히 제거
+          if (item.action === 'insert') {
+            return acc; // 새 배열에 추가하지 않고 건너뜀
+          }
+          // 요구사항 1: 기존 항목이면 action을 'delete'로 변경
+          acc.push({ ...item, action: 'delete' });
+          return acc;
+        }
+        // 선택되지 않은 항목은 그대로 유지
+        acc.push(item);
+        return acc;
+      }, []);
+    });
+
+    // 작업 완료 후 그리드의 선택 상태 초기화
+    handleSettingListSelectionChange({ type: 'include', ids: new Set() });
+  };
+
+  // action이 'delete'가 아닌 항목만 화면에 표시하기 위한 메모이제이션
+  const visibleSettingList = useMemo(
+    () => settingList.filter((item) => item.action !== 'delete'),
+    [settingList],
+  );
 
   const isEvaluatorSectionVisible = !!(
     selectedYear &&
@@ -516,7 +545,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               onWeightChange={(step, value) =>
                 setEvaluatorWeights((prev) => ({ ...prev, [step]: value }))
               }
-              onApply={handleApplyToList} // [추가]
+              onApply={handleApplyToList}
             />
           </Stack>
 
@@ -531,7 +560,13 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 5. 평가설정 목록
               </Typography>
 
-              <Button variant="outlined" size="small" color="error">
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                disabled={settingListSelectionModel.ids.size === 0}
+                onClick={handleExcludeFromList}
+              >
                 목록 제외
               </Button>
             </Stack>
@@ -539,8 +574,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             <Box sx={{ flex: 1, overflow: 'auto' }}>
               {mounted ? (
                 <DataGrid
-                  rows={settingList} // [수정]
-                  getRowId={(row) => row.evaluateeId} // [추가]
+                  rows={visibleSettingList}
+                  getRowId={(row) => row.evaluateeId}
                   columns={[
                     {
                       field: 'evaluateeName',
@@ -561,7 +596,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                       field: 'evaluatorName1',
                       headerName: '1차 평가자',
                       flex: 1,
-                      // [추가] 이름과 가중치를 함께 표시
+
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight1 || '0'}%)`,
                     },
@@ -569,7 +604,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                       field: 'evaluatorName2',
                       headerName: '2차 평가자',
                       flex: 1,
-                      // [추가] 이름과 가중치를 함께 표시
+
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight2 || '0'}%)`,
                     },
@@ -577,7 +612,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                       field: 'evaluatorName3',
                       headerName: '3차 평가자',
                       flex: 1,
-                      // [추가] 이름과 가중치를 함께 표시
+
                       valueGetter: (value, row) =>
                         `${value || '-'} (${row.evaluatorWeight3 || '0'}%)`,
                     },
@@ -594,11 +629,10 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                     },
                   }}
                   pageSizeOptions={[100]}
-                  onRowClick={handleSettingRowClick} // [추가]
-                  checkboxSelection // [추가]
-                  rowSelectionModel={settingListSelectionModel} // [추가]
-                  onRowSelectionModelChange={handleSettingListSelectionChange} // [추가]
-                  // [추가] 행의 다른 곳을 클릭해도 체크박스가 선택되지 않도록 함
+                  onRowClick={handleSettingRowClick}
+                  checkboxSelection
+                  rowSelectionModel={settingListSelectionModel}
+                  onRowSelectionModelChange={handleSettingListSelectionChange}
                   disableRowSelectionOnClick
                   slotProps={{
                     loadingOverlay: {
