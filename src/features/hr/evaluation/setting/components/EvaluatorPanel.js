@@ -20,6 +20,7 @@ export default function EvaluatorPanel({
   evaluatorWeights,
   onEvaluatorChange,
   onWeightChange,
+  onApply, // [추가]
 }) {
   const isApplyDisabled = (() => {
     if (!visible) return true; // 패널이 보이지 않으면 항상 비활성화
@@ -58,6 +59,7 @@ export default function EvaluatorPanel({
           size="small"
           color="primary"
           disabled={isApplyDisabled}
+          onClick={onApply} // [수정]
         >
           목록 적용
         </Button>

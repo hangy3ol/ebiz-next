@@ -57,6 +57,9 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     step3: '',
   });
 
+  // [추가] 5. 평가설정 목록 그리드에 표시될 데이터를 관리하는 상태
+  const [settingList, setSettingList] = useState([]);
+
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
   useEffect(() => {
@@ -235,6 +238,92 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     getRowId: (row) => row.userId,
   });
 
+  // [수정] 목록 적용 버튼 클릭 핸들러
+  const handleApplyToList = () => {
+    // [추가] 헬퍼 함수: ID로 평가자 이름 찾기
+    const getEvaluatorName = (step, id) => {
+      if (!id) return null;
+      const list = evaluatorList[step] || [];
+      return list.find((e) => e.userId === id)?.userName || null;
+    };
+
+    // [추가] 선택된 평가자 정보 미리 찾아두기
+    const evaluatorName1 = getEvaluatorName('step1', selectedEvaluators.step1);
+    const evaluatorName2 = getEvaluatorName('step2', selectedEvaluators.step2);
+    const evaluatorName3 = getEvaluatorName('step3', selectedEvaluators.step3);
+
+    // [추가] 선택된 대상자 ID 목록 가져오기
+    const selectedCandidateIds = Array.from(candidateSelectionModel.ids);
+
+    // [추가] 각 대상자별로 설정 상세 객체를 생성하여 배열로 만듦
+    const newSettingDetails = selectedCandidateIds
+      .map((candidateId) => {
+        // 목록에서 현재 대상자 정보 찾기
+        const candidate = candidateList.find((c) => c.userId === candidateId);
+
+        // 대상자 정보가 없으면 생성 중단
+        if (!candidate) return null;
+
+        const detail = {
+          // 이전 단계에서 추가한 속성
+          settingDetailId: crypto.randomUUID(),
+          criteriaMasterId: selectedCriteria?.id,
+          criteriaMasterTitle: selectedCriteria?.title,
+          adjustmentMasterId: selectedAdjustment?.id,
+          adjustmentMasterTitle: selectedAdjustment?.title,
+
+          // [추가] 1. 대상자 정보 할당
+          evaluateeId: candidate.userId,
+          evaluateeName: candidate.userName,
+
+          // [추가] 2. 평가자 정보 할당
+          evaluatorId1: selectedEvaluators.step1 || null,
+          evaluatorName1,
+          evaluatorWeight1: evaluatorWeights.step1 || null,
+          evaluatorId2: selectedEvaluators.step2 || null,
+          evaluatorName2,
+          evaluatorWeight2: evaluatorWeights.step2 || null,
+          evaluatorId3: null, // 3차 평가자는 기본적으로 null
+          evaluatorName3: null,
+          evaluatorWeight3: null,
+
+          // [추가] 3. 직군/직책 코드 할당
+          jobGroupCode: selectedJobGroup,
+          jobTitleCode: selectedJobTitle,
+
+          // [추가] 4. 액션 상태 할당
+          action: 'insert',
+        };
+
+        // 직책이 팀원('02')일 경우에만 3차 평가자 정보 추가
+        if (selectedJobTitle === '02') {
+          detail.evaluatorId3 = selectedEvaluators.step3 || null;
+          detail.evaluatorName3 = evaluatorName3;
+          detail.evaluatorWeight3 = evaluatorWeights.step3 || null;
+        }
+
+        return detail;
+      })
+      .filter(Boolean); // 혹시 모를 null 값 제거
+
+    // [수정] 생성된 객체 '배열'을 콘솔에 출력
+    console.log(newSettingDetails);
+
+    // [추가] 그리드 데이터 업데이트
+    setSettingList((prevList) => {
+      // 새로 추가된 목록을 Map으로 변환하여 빠른 조회를 가능하게 함
+      const newDetailsMap = new Map(
+        newSettingDetails.map((item) => [item.evaluateeId, item]),
+      );
+      // 기존 목록에서 새로 추가된 대상자와 중복되지 않는 항목만 필터링
+      const updatedList = prevList.filter(
+        (item) => !newDetailsMap.has(item.evaluateeId),
+      );
+      // 필터링된 기존 목록과 새로운 목록을 합쳐서 최종 목록 반환
+      return [...updatedList, ...newSettingDetails];
+    });
+  };
+
   const isEvaluatorSectionVisible = !!(
     selectedYear &&
     selectedOffice &&
@@ -393,6 +482,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               onWeightChange={(step, value) =>
                 setEvaluatorWeights((prev) => ({ ...prev, [step]: value }))
               }
+              onApply={handleApplyToList} // [추가]
             />
           </Stack>
 
@@ -415,7 +505,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             <Box sx={{ flex: 1, overflow: 'auto' }}>
               {mounted ? (
                 <DataGrid
-                  rows={[]}
+                  rows={settingList} // [수정]
+                  getRowId={(row) => row.evaluateeId} // [추가]
                   columns={[
                     {
                       field: 'evaluateeName',
@@ -436,16 +527,25 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                       field: 'evaluatorName1',
                       headerName: '1차 평가자',
                       flex: 1,
+                      // [추가] 이름과 가중치를 함께 표시
+                      valueGetter: (value, row) =>
+                        `${value || '-'} (${row.evaluatorWeight1 || '0'}%)`,
                     },
                     {
                       field: 'evaluatorName2',
                       headerName: '2차 평가자',
                       flex: 1,
+                      // [추가] 이름과 가중치를 함께 표시
+                      valueGetter: (value, row) =>
+                        `${value || '-'} (${row.evaluatorWeight2 || '0'}%)`,
                     },
                     {
                       field: 'evaluatorName3',
                       headerName: '3차 평가자',
                       flex: 1,
+                      // [추가] 이름과 가중치를 함께 표시
+                      valueGetter: (value, row) =>
+                        `${value || '-'} (${row.evaluatorWeight3 || '0'}%)`,
                     },
                   ]}
                   density="compact"
