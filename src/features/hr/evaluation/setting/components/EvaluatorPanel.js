@@ -22,13 +22,37 @@ export default function EvaluatorPanel({
   onEvaluatorChange,
   onWeightChange,
 }) {
+  // [추가] '목록 적용' 버튼의 비활성화 여부를 계산하는 로직
+  const isApplyDisabled = (() => {
+    if (!visible) return true; // 패널이 보이지 않으면 항상 비활성화
+
+    if (jobTitle === '01') {
+      // 팀장(01)은 1, 2차 평가자 모두 선택해야 활성화
+      return !selectedEvaluators.step1 || !selectedEvaluators.step2;
+    }
+    if (jobTitle === '02') {
+      // 팀원(02)은 1, 2, 3차 평가자 모두 선택해야 활성화
+      return (
+        !selectedEvaluators.step1 ||
+        !selectedEvaluators.step2 ||
+        !selectedEvaluators.step3
+      );
+    }
+    return true; // 그 외의 경우는 항상 비활성화
+  })();
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="subtitle2" fontWeight="medium">
           4. 평가자 선택
         </Typography>
-        <Button variant="outlined" size="small" color="primary">
+        <Button
+          variant="outlined"
+          size="small"
+          color="primary"
+          disabled={isApplyDisabled}
+        >
           목록 적용
         </Button>
       </Stack>
@@ -133,7 +157,7 @@ export default function EvaluatorPanel({
             sx={{ height: '100%' }}
           >
             <Typography color="text.secondary" variant="body2">
-              상위 항목을 먼저 선택해주세요.
+              대상자를 먼저 선택해주세요.
             </Typography>
           </Stack>
         )}

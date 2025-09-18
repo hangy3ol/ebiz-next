@@ -351,14 +351,15 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               list={filteredCandidateList}
               keyword={candidateKeyword}
               onKeywordChange={setCandidateKeyword}
-              // [추가] rowSelectionModel prop 전달
               rowSelectionModel={candidateSelectionModel}
-              // [추가] onRowSelectionModelChange prop 전달
               onRowSelectionModelChange={handleCandidateSelectionChange}
             />
 
             <EvaluatorPanel
-              visible={isEvaluatorSectionVisible}
+              visible={
+                isEvaluatorSectionVisible &&
+                candidateSelectionModel.ids.size > 0
+              }
               jobTitle={selectedJobTitle}
               evaluatorList={evaluatorList}
               selectedEvaluators={selectedEvaluators}
