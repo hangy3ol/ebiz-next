@@ -185,14 +185,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     setMounted(true);
   }, []);
 
-  const handleEvaluatorChange = (step, value) => {
-    setSelectedEvaluators((prev) => ({ ...prev, [step]: value }));
-  };
-  const handleWeightChange = (step, value) => {
-    setEvaluatorWeights((prev) => ({ ...prev, [step]: value }));
-  };
-
-  const handleOpenPreviewPopup = (basePath, id) => {
+  const handlePreview = (basePath, id) => {
     const popupWidth = 800;
     const popupHeight = 600;
     const left = window.screenX + (window.outerWidth - popupWidth) / 2;
@@ -326,9 +319,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               enabled={!!(selectedJobGroup && selectedJobTitle)}
               selectedId={selectedCriteriaId}
               onSelect={setSelectedCriteriaId}
-              onPreview={(id) =>
-                handleOpenPreviewPopup('/hr/evaluation/criteria', id)
-              }
+              onPreview={(id) => handlePreview('/hr/evaluation/criteria', id)}
             />
 
             <AdjustmentPanel
@@ -338,9 +329,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               }
               selectedId={selectedAdjustmentId}
               onSelect={setSelectedAdjustmentId}
-              onPreview={(id) =>
-                handleOpenPreviewPopup('/hr/evaluation/adjustment', id)
-              }
+              onPreview={(id) => handlePreview('/hr/evaluation/adjustment', id)}
             />
           </Stack>
 
@@ -364,8 +353,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               evaluatorList={evaluatorList}
               selectedEvaluators={selectedEvaluators}
               evaluatorWeights={evaluatorWeights}
-              onEvaluatorChange={handleEvaluatorChange}
-              onWeightChange={handleWeightChange}
+              onEvaluatorChange={(step, value) =>
+                setSelectedEvaluators((prev) => ({ ...prev, [step]: value }))
+              }
+              onWeightChange={(step, value) =>
+                setEvaluatorWeights((prev) => ({ ...prev, [step]: value }))
+              }
             />
           </Stack>
 
