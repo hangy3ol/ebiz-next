@@ -50,7 +50,12 @@ export default function EvaluatorPanel({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 1 }}
+      >
         <Typography variant="subtitle2" fontWeight="medium">
           4. 평가자 선택
         </Typography>
