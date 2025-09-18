@@ -238,6 +238,15 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     getRowId: (row) => row.userId,
   });
 
+  // [추가] 5번 그리드의 행 선택 상태를 제어하기 위한 커스텀 훅
+  const {
+    rowSelectionModel: settingListSelectionModel,
+    onRowSelectionModelChange: handleSettingListSelectionChange,
+  } = useGridSelection({
+    allRows: settingList,
+    getRowId: (row) => row.evaluateeId,
+  });
+
   // [수정] 목록 적용 버튼 클릭 핸들러 (Upsert 로직 적용)
   const handleApplyToList = () => {
     const getEvaluatorName = (step, id) => {
@@ -586,6 +595,11 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                   }}
                   pageSizeOptions={[100]}
                   onRowClick={handleSettingRowClick} // [추가]
+                  checkboxSelection // [추가]
+                  rowSelectionModel={settingListSelectionModel} // [추가]
+                  onRowSelectionModelChange={handleSettingListSelectionChange} // [추가]
+                  // [추가] 행의 다른 곳을 클릭해도 체크박스가 선택되지 않도록 함
+                  disableRowSelectionOnClick
                   slotProps={{
                     loadingOverlay: {
                       variant: 'linear-progress',
