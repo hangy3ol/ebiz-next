@@ -26,6 +26,7 @@ export default function AdjustmentPanel({
       <Typography variant="subtitle2" fontWeight="medium">
         2. 감/가점 기준 선택
       </Typography>
+
       <Paper variant="outlined" sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
         {enabled ? (
           <List dense>
@@ -34,9 +35,14 @@ export default function AdjustmentPanel({
                 <ListItemButton
                   key={adjustment.adjustmentMasterId}
                   selected={selectedId === adjustment.adjustmentMasterId}
-                  onClick={() => onSelect(adjustment.adjustmentMasterId)}
+                  onClick={() =>
+                    onSelect({
+                      id: adjustment.adjustmentMasterId,
+                      title: adjustment.title,
+                    })
+                  }
                 >
-                  <ListItemText primary={adjustment.title} />
+                  <ListItemText primary={adjustment.title} /> 
                   <IconButton
                     size="small"
                     onClick={(e) => {
@@ -44,7 +50,7 @@ export default function AdjustmentPanel({
                       onPreview(adjustment.adjustmentMasterId);
                     }}
                   >
-                    <PreviewIcon fontSize="small" />
+                    <PreviewIcon fontSize="small" /> 
                   </IconButton>
                 </ListItemButton>
               ))

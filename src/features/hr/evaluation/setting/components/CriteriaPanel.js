@@ -45,6 +45,7 @@ export default function CriteriaPanel({
       <Typography variant="subtitle2" fontWeight="medium">
         1. 평가 기준 선택
       </Typography>
+
       <Paper variant="outlined" sx={{ mt: 1, flex: 1, overflow: 'auto' }}>
         {selectedJobGroup && selectedJobTitle ? (
           <List dense>
@@ -53,9 +54,14 @@ export default function CriteriaPanel({
                 <ListItemButton
                   key={criterion.criteriaMasterId}
                   selected={selectedId === criterion.criteriaMasterId}
-                  onClick={() => onSelect(criterion.criteriaMasterId)}
+                  onClick={() =>
+                    onSelect({
+                      id: criterion.criteriaMasterId,
+                      title: criterion.title,
+                    })
+                  }
                 >
-                  <ListItemText primary={criterion.title} />
+                  <ListItemText primary={criterion.title} /> 
                   <IconButton
                     size="small"
                     onClick={(e) => {
@@ -63,7 +69,7 @@ export default function CriteriaPanel({
                       onPreview(criterion.criteriaMasterId);
                     }}
                   >
-                    <PreviewIcon fontSize="small" />
+                    <PreviewIcon fontSize="small" /> 
                   </IconButton>
                 </ListItemButton>
               ))
@@ -86,7 +92,7 @@ export default function CriteriaPanel({
             }}
           >
             <Typography color="text.secondary" variant="body2">
-              기본 정보(평가귀속연도, 사업부 등)를 먼저 선택해주세요.
+              기본 정보(평가귀속년도, 사업부 등)를 먼저 선택해주세요.
             </Typography>
           </Box>
         )}

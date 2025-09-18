@@ -32,10 +32,10 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [selectedOffice, setSelectedOffice] = useState('');
   const [selectedJobGroup, setSelectedJobGroup] = useState('');
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(''); // [수정] ID만 저장하던 상태를 ID와 title을 포함하는 객체로 변경
 
-  const [selectedCriteriaId, setSelectedCriteriaId] = useState(null);
-  const [selectedAdjustmentId, setSelectedAdjustmentId] = useState(null);
+  const [selectedCriteria, setSelectedCriteria] = useState(null); // [수정] ID만 저장하던 상태를 ID와 title을 포함하는 객체로 변경
+  const [selectedAdjustment, setSelectedAdjustment] = useState(null);
 
   const [candidateList, setCandidateList] = useState([]);
   const [candidateKeyword, setCandidateKeyword] = useState('');
@@ -110,17 +110,14 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             emp.officeId === selectedOffice &&
             emp.jobGroupCode === selectedJobGroup &&
             emp.jobTitleCode === selectedJobTitle,
-        )
-        // [추가] 입사일 및 퇴사일 기준 필터링 로직
+        ) // 입사일 및 퇴사일 기준 필터링 로직
         .filter((emp) => {
           const hireDate = new Date(emp.hireDate);
           const retirementDate = emp.retirement_date
             ? new Date(emp.retirement_date)
-            : null;
+            : null; // 입사일이 기준일(6개월 전)보다 이전이어야 함
 
-          // 입사일이 기준일(6개월 전)보다 이전이어야 함
-          const isHireDateValid = hireDate <= hireCutoffDate;
-          // 퇴사일이 없거나, 기준일(연말)보다 이후여야 함
+          const isHireDateValid = hireDate <= hireCutoffDate; // 퇴사일이 없거나, 기준일(연말)보다 이후여야 함
           const isStillEmployed =
             !retirementDate || retirementDate > cutoffDate;
 
@@ -243,8 +240,8 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     selectedOffice &&
     selectedJobGroup &&
     selectedJobTitle &&
-    selectedCriteriaId &&
-    selectedAdjustmentId
+    selectedCriteria &&
+    selectedAdjustment
   );
 
   return (
@@ -253,6 +250,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
         <Typography variant="h4">
           {isEditMode ? '평가 설정 수정' : '평가 설정 등록'}
         </Typography>
+
         <Stack direction="row" gap={1}>
           <Button variant="text">목록</Button>
           <Button variant="contained">저장</Button>
@@ -279,6 +277,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
+
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>사업부</InputLabel>
               <Select
@@ -293,6 +292,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
+
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직군</InputLabel>
               <Select
@@ -307,6 +307,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
+
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>직책</InputLabel>
               <Select
@@ -321,6 +322,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                 ))}
               </Select>
             </FormControl>
+
             <TextField
               label="제목"
               size="small"
@@ -349,18 +351,18 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               selectedJobGroup={selectedJobGroup}
               selectedJobTitle={selectedJobTitle}
               enabled={!!(selectedJobGroup && selectedJobTitle)}
-              selectedId={selectedCriteriaId}
-              onSelect={setSelectedCriteriaId}
+              selectedId={selectedCriteria?.id}
+              onSelect={setSelectedCriteria}
               onPreview={(id) => handlePreview('/hr/evaluation/criteria', id)}
             />
 
             <AdjustmentPanel
               list={initialData?.adjustmentList || []}
               enabled={
-                !!(selectedJobGroup && selectedJobTitle && selectedCriteriaId)
+                !!(selectedJobGroup && selectedJobTitle && selectedCriteria)
               }
-              selectedId={selectedAdjustmentId}
-              onSelect={setSelectedAdjustmentId}
+              selectedId={selectedAdjustment?.id}
+              onSelect={setSelectedAdjustment}
               onPreview={(id) => handlePreview('/hr/evaluation/adjustment', id)}
             />
           </Stack>
@@ -404,10 +406,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               <Typography variant="subtitle2" fontWeight="medium">
                 5. 평가설정 목록
               </Typography>
+
               <Button variant="outlined" size="small" color="error">
                 목록 제외
               </Button>
             </Stack>
+
             <Box sx={{ flex: 1, overflow: 'auto' }}>
               {mounted ? (
                 <DataGrid
