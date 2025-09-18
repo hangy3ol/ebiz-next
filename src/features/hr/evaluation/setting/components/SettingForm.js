@@ -324,6 +324,42 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     });
   };
 
+  const handleSettingRowClick = (params) => {
+    const { row } = params;
+
+    // 1. 평가 기준 선택 상태 업데이트
+    setSelectedCriteria({
+      id: row.criteriaMasterId,
+      title: row.criteriaMasterTitle,
+    });
+
+    // 2. 감/가점 기준 선택 상태 업데이트
+    setSelectedAdjustment({
+      id: row.adjustmentMasterId,
+      title: row.adjustmentMasterTitle,
+    });
+
+    // 3. 대상자 선택 상태 업데이트
+    // 직군/직책은 이미 동일한 컨텍스트이므로 상태 변경 불필요
+    // 클릭된 행의 대상자만 선택되도록 변경
+    handleCandidateSelectionChange({
+      type: 'include',
+      ids: new Set([row.evaluateeId]),
+    });
+
+    // 4. 평가자 및 가중치 상태 업데이트
+    setSelectedEvaluators({
+      step1: row.evaluatorId1,
+      step2: row.evaluatorId2,
+      step3: row.evaluatorId3,
+    });
+    setEvaluatorWeights({
+      step1: String(row.evaluatorWeight1 || ''), // null일 경우 빈 문자열로
+      step2: String(row.evaluatorWeight2 || ''),
+      step3: String(row.evaluatorWeight3 || ''),
+    });
+  };
+
   const isEvaluatorSectionVisible = !!(
     selectedYear &&
     selectedOffice &&
@@ -560,6 +596,7 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
                     },
                   }}
                   pageSizeOptions={[100]}
+                  onRowClick={handleSettingRowClick} // [추가]
                   slotProps={{
                     loadingOverlay: {
                       variant: 'linear-progress',
