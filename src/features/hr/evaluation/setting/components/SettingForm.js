@@ -92,7 +92,17 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     const { employeeList } = initialData || {};
     if (!employeeList) return;
 
-    if (selectedOffice && selectedJobGroup && selectedJobTitle) {
+    if (
+      selectedOffice &&
+      selectedJobGroup &&
+      selectedJobTitle &&
+      selectedYear
+    ) {
+      const year = parseInt(selectedYear, 10);
+      const cutoffDate = new Date(year, 11, 31); // 평가년도 12월 31일
+      const hireCutoffDate = new Date(cutoffDate);
+      hireCutoffDate.setMonth(cutoffDate.getMonth() - 6); // 6개월 전
+
       const filtered = employeeList
         .filter((emp) => emp.userId !== '21001') // 이행재 이사 제외(임원이지만 절차상 팀장으로 취급)
         .filter(
@@ -100,12 +110,34 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
             emp.officeId === selectedOffice &&
             emp.jobGroupCode === selectedJobGroup &&
             emp.jobTitleCode === selectedJobTitle,
-        );
+        )
+        // [추가] 입사일 및 퇴사일 기준 필터링 로직
+        .filter((emp) => {
+          const hireDate = new Date(emp.hireDate);
+          const retirementDate = emp.retirement_date
+            ? new Date(emp.retirement_date)
+            : null;
+
+          // 입사일이 기준일(6개월 전)보다 이전이어야 함
+          const isHireDateValid = hireDate <= hireCutoffDate;
+          // 퇴사일이 없거나, 기준일(연말)보다 이후여야 함
+          const isStillEmployed =
+            !retirementDate || retirementDate > cutoffDate;
+
+          return isHireDateValid && isStillEmployed;
+        });
+
       setCandidateList(filtered);
     } else {
       setCandidateList([]);
     }
-  }, [selectedOffice, selectedJobGroup, selectedJobTitle, initialData]);
+  }, [
+    selectedOffice,
+    selectedJobGroup,
+    selectedJobTitle,
+    initialData,
+    selectedYear,
+  ]);
 
   useEffect(() => {
     const employeeList = initialData?.employeeList || [];

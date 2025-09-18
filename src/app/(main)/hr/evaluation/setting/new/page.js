@@ -30,7 +30,7 @@ export default async function NewSettingPage() {
     fetchJobTitleOptions(),
     fetchCriteriaList({}),
     fetchAdjustmentList({}),
-    fetchEmployeeList({ evaluationYear: new Date().getFullYear() }),
+    fetchEmployeeList({ includeAll: false }),
   ]);
 
   const initialData = {
