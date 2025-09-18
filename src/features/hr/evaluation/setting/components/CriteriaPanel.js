@@ -86,7 +86,7 @@ export default function CriteriaPanel({
             }}
           >
             <Typography color="text.secondary" variant="body2">
-              기본 정보를 먼저 선택해주세요.
+              기본 정보(평가귀속연도, 사업부 등)를 먼저 선택해주세요.
             </Typography>
           </Box>
         )}

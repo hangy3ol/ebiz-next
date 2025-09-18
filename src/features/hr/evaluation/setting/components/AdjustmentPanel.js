@@ -67,7 +67,7 @@ export default function AdjustmentPanel({
             }}
           >
             <Typography color="text.secondary" variant="body2">
-              기본 정보와 평가 기준을 먼저 선택해주세요.
+              평가 기준을 먼저 선택해주세요.
             </Typography>
           </Box>
         )}

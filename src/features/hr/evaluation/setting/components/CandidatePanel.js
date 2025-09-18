@@ -92,7 +92,7 @@ export default function CandidatePanel({
               textAlign="center"
               variant="body2"
             >
-              기본 정보와 평가 기준, 감/가점 기준을 먼저 선택해주세요.
+              감/가점 기준을 먼저 선택해주세요.
             </Typography>
           </Paper>
         )}
