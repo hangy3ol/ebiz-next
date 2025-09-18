@@ -32,9 +32,9 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
   const [selectedOffice, setSelectedOffice] = useState('');
   const [selectedJobGroup, setSelectedJobGroup] = useState('');
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
-  const [title, setTitle] = useState(''); // [수정] ID만 저장하던 상태를 ID와 title을 포함하는 객체로 변경
+  const [title, setTitle] = useState('');
 
-  const [selectedCriteria, setSelectedCriteria] = useState(null); // [수정] ID만 저장하던 상태를 ID와 title을 포함하는 객체로 변경
+  const [selectedCriteria, setSelectedCriteria] = useState(null);
   const [selectedAdjustment, setSelectedAdjustment] = useState(null);
 
   const [candidateList, setCandidateList] = useState([]);
