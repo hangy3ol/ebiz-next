@@ -17,6 +17,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useState, useEffect, useMemo } from 'react';
 
+import { useGridSelection } from '@/common/hooks/useGridSelection';
 import { matchIncludes } from '@/common/utils/filters';
 import AdjustmentPanel from '@/features/hr/evaluation/setting/components/AdjustmentPanel';
 import CandidatePanel from '@/features/hr/evaluation/setting/components/CandidatePanel';
@@ -204,6 +205,14 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     );
   };
 
+  const {
+    rowSelectionModel: candidateSelectionModel,
+    onRowSelectionModelChange: handleCandidateSelectionChange,
+  } = useGridSelection({
+    allRows: filteredCandidateList,
+    getRowId: (row) => row.userId,
+  });
+
   const isEvaluatorSectionVisible = !!(
     selectedYear &&
     selectedOffice &&
@@ -342,6 +351,10 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               list={filteredCandidateList}
               keyword={candidateKeyword}
               onKeywordChange={setCandidateKeyword}
+              // [추가] rowSelectionModel prop 전달
+              rowSelectionModel={candidateSelectionModel}
+              // [추가] onRowSelectionModelChange prop 전달
+              onRowSelectionModelChange={handleCandidateSelectionChange}
             />
 
             <EvaluatorPanel

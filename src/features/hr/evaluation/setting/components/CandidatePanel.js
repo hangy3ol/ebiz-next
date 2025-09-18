@@ -10,6 +10,8 @@ export default function CandidatePanel({
   list,
   keyword,
   onKeywordChange,
+  rowSelectionModel,
+  onRowSelectionModelChange,
 }) {
   return (
     <Box
@@ -61,6 +63,8 @@ export default function CandidatePanel({
                 : '감/가점 기준을 먼저 선택해주세요.',
             }}
             checkboxSelection
+            rowSelectionModel={rowSelectionModel}
+            onRowSelectionModelChange={onRowSelectionModelChange}
             pageSizeOptions={[100]}
             initialState={{
               pagination: {
