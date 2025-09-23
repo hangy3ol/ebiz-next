@@ -14,11 +14,16 @@ import {
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 import { useState, useEffect } from 'react';
+
+import { confirm } from '@/common/utils/confirm';
+import { deleteSettingApi } from '@/features/hr/evaluation/setting/api/settingApi';
 
 export default function SettingView({ initialData }) {
   const settingApiRef = useGridApiRef();
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   const {
     master,
@@ -59,6 +64,42 @@ export default function SettingView({ initialData }) {
     router.push(`/hr/evaluation/setting/${master.settingMasterId}/edit`);
   };
 
+  // 삭제
+  const handleDelete = async () => {
+    // 1. 사용자에게 삭제 여부 재확인
+    const isConfirmed = await confirm({
+      title: '평가 설정 삭제',
+      content:
+        '정말로 이 평가 설정을 삭제하시겠습니까?\n관련된 모든 데이터가 함께 삭제되며, 복구할 수 없습니다.',
+    });
+
+    if (isConfirmed) {
+      try {
+        // 2. API 호출
+        const { success, message } = await deleteSettingApi({
+          settingMasterId: master.settingMasterId,
+        });
+
+        if (success) {
+          // 3. 성공 처리
+          enqueueSnackbar(message || '성공적으로 삭제되었습니다.', {
+            variant: 'success',
+          });
+          router.push('/hr/evaluation/setting'); // 목록으로 이동
+        } else {
+          // 4. 실패 처리
+          enqueueSnackbar(message || '삭제에 실패했습니다.', {
+            variant: 'error',
+          });
+        }
+      } catch (error) {
+        // 4. 에러 처리
+        enqueueSnackbar('삭제 중 오류가 발생했습니다.', { variant: 'error' });
+        console.error('Delete error:', error);
+      }
+    }
+  };
+
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -86,6 +127,7 @@ export default function SettingView({ initialData }) {
             <Button
               variant="outlined"
               color="error"
+              onClick={handleDelete}
               disabled={master?.refCount > 0}
             >
               삭제

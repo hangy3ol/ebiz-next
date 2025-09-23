@@ -239,11 +239,10 @@ export const updateSettingMaster = async (
 export const deleteSettingMaster = async (params, transaction = null) => {
   return await executeWithTransaction(async (trx) => {
     const sql = `
-      DELETE FROM ${db.ebiz}.evaluation_setting_master
-      WHERE id = :id;
+      DELETE FROM ${db.ebiz}.evaluation_setting_master WHERE id = :settingMasterId;
     `;
     await db.sequelize.query(sql, {
-      replacements: { id: params.id },
+      replacements: { settingMasterId: params.settingMasterId },
       type: db.sequelize.QueryTypes.DELETE,
       transaction: trx,
     });
@@ -410,24 +409,36 @@ export const updateSettingDetail = async (item, employeeId, transaction) => {
 
 // 평가설정 디테일 삭제
 export const deleteSettingDetail = async (params, transaction) => {
-  const replacements = { settingDetailId: params.settingDetailId };
+  const replacements = {};
 
-  // 1. evaluation_progress 데이터 먼저 삭제
-  const deleteProgressSql = `
-    DELETE FROM ${db.ebiz}.evaluation_progress
-    WHERE setting_detail_id = :settingDetailId;
-  `;
+  let deleteDetailSql = `DELETE FROM ${db.ebiz}.evaluation_setting_detail WHERE 1 = 1`;
+  let deleteProgressSql = `DELETE FROM ${db.ebiz}.evaluation_progress WHERE 1 = 1`;
+
+  // settingDetailId 기반 삭제 (saveSetting에서 호출 시)
+  if (params.settingDetailId) {
+    deleteDetailSql += ` AND id = :settingDetailId`;
+    deleteProgressSql += ` AND setting_detail_id = :settingDetailId`;
+    replacements.settingDetailId = params.settingDetailId;
+  }
+  // settingMasterId 기반 삭제 (deleteSetting에서 호출 시)
+  else if (params.settingMasterId) {
+    deleteDetailSql += ` AND master_id = :settingMasterId`;
+    deleteProgressSql += ` AND setting_master_id = :settingMasterId`;
+    replacements.settingMasterId = params.settingMasterId;
+  }
+  // 처리할 ID가 없으면 함수 종료
+  else {
+    return;
+  }
+
+  // progress 데이터 먼저 삭제
   await db.sequelize.query(deleteProgressSql, {
     replacements,
     type: db.sequelize.QueryTypes.DELETE,
     transaction,
   });
 
-  // 2. evaluation_setting_detail 데이터 삭제
-  const deleteDetailSql = `
-    DELETE FROM ${db.ebiz}.evaluation_setting_detail
-    WHERE id = :settingDetailId;
-  `;
+  // detail 데이터 삭제
   await db.sequelize.query(deleteDetailSql, {
     replacements,
     type: db.sequelize.QueryTypes.DELETE,
@@ -482,10 +493,15 @@ export const saveSetting = async (params, employeeId) => {
 
 // 평가설정 삭제
 export const deleteSetting = async (params) => {
+  console.log('params: ', params);
+
   return await executeWithTransaction(async (transaction) => {
-    // [수정] exports.xxx() 호출을 내부 함수 호출로 변경
+    // 1. 평가설정 디테일 삭제 (전달받은 파라미터 그대로 넘김)
     await deleteSettingDetail(params, transaction);
+
+    // 2. 평가설정 마스터 삭제 (전달받은 파라미터 그대로 넘김)
     await deleteSettingMaster(params, transaction);
+
     return { success: true };
   });
 };
