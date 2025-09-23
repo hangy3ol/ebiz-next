@@ -468,82 +468,80 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ p: 2 }}>
-          {isEditMode ? (
+          <Stack direction="row" spacing={2}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>평가귀속년도</InputLabel>
+              <Select
+                label="평가귀속년도"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                disabled={isEditMode}
+              >
+                {selectOptions?.year?.map((y) => (
+                  <MenuItem key={y.id} value={y.id}>
+                    {y.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>사업부</InputLabel>
+              <Select
+                label="사업부"
+                value={selectedOffice}
+                onChange={(e) => setSelectedOffice(e.target.value)}
+                disabled={isEditMode}
+              >
+                {selectOptions?.office?.map((o) => (
+                  <MenuItem key={o.id} value={o.id}>
+                    {o.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>직군</InputLabel>
+              <Select
+                label="직군"
+                value={selectedJobGroup}
+                onChange={(e) => setSelectedJobGroup(e.target.value)}
+                disabled={isEditMode}
+              >
+                {selectOptions?.jobGroup?.map((g) => (
+                  <MenuItem key={g.id} value={g.id}>
+                    {g.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>직책</InputLabel>
+              <Select
+                label="직책"
+                value={selectedJobTitle}
+                onChange={(e) => setSelectedJobTitle(e.target.value)}
+                disabled={isEditMode}
+              >
+                {selectOptions?.jobTitle?.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name1}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <TextField
               label="제목"
               size="small"
               fullWidth
               value={title}
-              InputProps={{ readOnly: true }}
+              disabled={isEditMode}
+              placeholder="상위 항목을 모두 선택하세요"
             />
-          ) : (
-            <Stack direction="row" spacing={2}>
-              <FormControl size="small" sx={{ minWidth: 140 }}>
-                <InputLabel>평가귀속년도</InputLabel>
-                <Select
-                  label="평가귀속년도"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                >
-                  {selectOptions?.year?.map((y) => (
-                    <MenuItem key={y.id} value={y.id}>
-                      {y.name1}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>사업부</InputLabel>
-                <Select
-                  label="사업부"
-                  value={selectedOffice}
-                  onChange={(e) => setSelectedOffice(e.target.value)}
-                >
-                  {selectOptions?.office?.map((o) => (
-                    <MenuItem key={o.id} value={o.id}>
-                      {o.name1}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>직군</InputLabel>
-                <Select
-                  label="직군"
-                  value={selectedJobGroup}
-                  onChange={(e) => setSelectedJobGroup(e.target.value)}
-                >
-                  {selectOptions?.jobGroup?.map((g) => (
-                    <MenuItem key={g.id} value={g.id}>
-                      {g.name1}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>직책</InputLabel>
-                <Select
-                  label="직책"
-                  value={selectedJobTitle}
-                  onChange={(e) => setSelectedJobTitle(e.target.value)}
-                >
-                  {selectOptions?.jobTitle?.map((t) => (
-                    <MenuItem key={t.id} value={t.id}>
-                      {t.name1}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="제목"
-                size="small"
-                fullWidth
-                value={title}
-                InputProps={{ readOnly: true }}
-                placeholder="상위 항목을 모두 선택하세요"
-              />
-            </Stack>
-          )}
+          </Stack>
         </Paper>
 
         <Paper
