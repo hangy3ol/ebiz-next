@@ -58,7 +58,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     step3: '',
   });
 
-  // [추가] 5. 평가설정 목록 그리드에 표시될 데이터를 관리하는 상태
   const [settingList, setSettingList] = useState([]);
 
   const router = useRouter();
@@ -430,6 +429,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     [settingList],
   );
 
+  // 저장 버튼 비활성화 여부를 결정하는 변수
+  const isSaveDisabled = useMemo(
+    () => visibleSettingList.length === 0,
+    [visibleSettingList],
+  );
+
   const isEvaluatorSectionVisible = !!(
     selectedYear &&
     selectedOffice &&
@@ -448,11 +453,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
         <Stack direction="row" gap={1}>
           <Button variant="text">목록</Button>
-          <Button variant="contained" onClick={handleSave}>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={isSaveDisabled}
+          >
             저장
-          </Button>
-          <Button variant="outlined" color="error">
-            취소
           </Button>
         </Stack>
       </Stack>
