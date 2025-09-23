@@ -1,5 +1,3 @@
-// [신규] 파일 신규 생성
-
 import axiosClient from '@/libs/axios/client';
 
 export async function saveSettingApi(payload) {

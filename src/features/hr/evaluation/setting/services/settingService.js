@@ -334,12 +334,105 @@ export const insertSettingDetail = async (
 
 // 평가설정 디테일 수정
 export const updateSettingDetail = async (item, employeeId, transaction) => {
-  // (생략) 기존 로직과 유사하게 구현...
+  // 1. evaluation_setting_detail 테이블 업데이트
+  const detailFields = [
+    'updated_by = :updatedBy',
+    'updated_at = CURRENT_TIMESTAMP()',
+  ];
+  const detailReplacements = {
+    settingDetailId: item.settingDetailId,
+    updatedBy: employeeId,
+  };
+
+  if (item.criteriaMasterId !== undefined) {
+    detailFields.push('criteria_master_id = :criteriaMasterId');
+    detailReplacements.criteriaMasterId = item.criteriaMasterId;
+  }
+
+  if (item.adjustmentMasterId !== undefined) {
+    detailFields.push('adjustment_master_id = :adjustmentMasterId');
+    detailReplacements.adjustmentMasterId = item.adjustmentMasterId;
+  }
+
+  const detailSql = `
+    UPDATE ${db.ebiz}.evaluation_setting_detail
+    SET ${detailFields.join(', ')}
+    WHERE id = :settingDetailId;
+  `;
+  await db.sequelize.query(detailSql, {
+    replacements: detailReplacements,
+    type: db.sequelize.QueryTypes.UPDATE,
+    transaction,
+  });
+
+  // 2. evaluation_progress 테이블을 각 step별로 개별 UPDATE
+  for (let step = 1; step <= 3; step++) {
+    const evaluatorId = item[`evaluatorId${step}`];
+    const weight = item[`evaluatorWeight${step}`];
+
+    // evaluatorId와 weight가 모두 없으면 해당 차수의 평가자가 없는 것이므로 UPDATE하지 않음
+    if (evaluatorId === undefined && weight === undefined) {
+      continue;
+    }
+
+    const progressFields = [
+      'updated_by = :updatedBy',
+      'updated_at = CURRENT_TIMESTAMP()',
+    ];
+    const progressReplacements = {
+      settingDetailId: item.settingDetailId,
+      evaluationStep: step,
+      updatedBy: employeeId,
+    };
+
+    if (evaluatorId !== undefined) {
+      progressFields.push('evaluator_id = :evaluatorId');
+      progressReplacements.evaluatorId = evaluatorId;
+    }
+
+    if (weight !== undefined) {
+      progressFields.push('weight = :weight');
+      progressReplacements.weight = weight;
+    }
+
+    const progressUpdateSql = `
+      UPDATE ${db.ebiz}.evaluation_progress
+      SET ${progressFields.join(', ')}
+      WHERE setting_detail_id = :settingDetailId AND evaluation_step = :evaluationStep;
+    `;
+    await db.sequelize.query(progressUpdateSql, {
+      replacements: progressReplacements,
+      type: db.sequelize.QueryTypes.UPDATE,
+      transaction,
+    });
+  }
 };
 
 // 평가설정 디테일 삭제
 export const deleteSettingDetail = async (params, transaction) => {
-  // (생략) 기존 로직과 유사하게 구현...
+  const replacements = { settingDetailId: params.settingDetailId };
+
+  // 1. evaluation_progress 데이터 먼저 삭제
+  const deleteProgressSql = `
+    DELETE FROM ${db.ebiz}.evaluation_progress
+    WHERE setting_detail_id = :settingDetailId;
+  `;
+  await db.sequelize.query(deleteProgressSql, {
+    replacements,
+    type: db.sequelize.QueryTypes.DELETE,
+    transaction,
+  });
+
+  // 2. evaluation_setting_detail 데이터 삭제
+  const deleteDetailSql = `
+    DELETE FROM ${db.ebiz}.evaluation_setting_detail
+    WHERE id = :settingDetailId;
+  `;
+  await db.sequelize.query(deleteDetailSql, {
+    replacements,
+    type: db.sequelize.QueryTypes.DELETE,
+    transaction,
+  });
 };
 
 // 평가설정 저장(등록, 수정)

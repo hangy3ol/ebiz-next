@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { useGridSelection } from '@/common/hooks/useGridSelection';
 import { matchIncludes } from '@/common/utils/filters';
@@ -26,6 +26,7 @@ import EvaluatorPanel from '@/features/hr/evaluation/setting/components/Evaluato
 import SettingDetailPanel from '@/features/hr/evaluation/setting/components/SettingDetailPanel';
 
 export default function SettingForm({ mode, initialData, selectOptions }) {
+  // ================== 1. State 선언부 ==================
   const [mounted, setMounted] = useState(false);
   const isEditMode = mode === 'edit';
 
@@ -60,10 +61,260 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
   const [settingList, setSettingList] = useState([]);
 
+  const [isInitialRowClicked, setIsInitialRowClicked] = useState(false);
+
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
+  // ================== 2. 메모이제이션 및 핸들러 선언부 ==================
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
+
+  const searchableCandidateFields = useMemo(
+    () => ['userName', 'departmentName', 'positionName'],
+    [],
+  );
+
+  const filteredCandidateList = useMemo(
+    () =>
+      candidateList.filter((candidate) =>
+        matchIncludes(candidate, candidateKeyword, searchableCandidateFields),
+      ),
+    [candidateList, candidateKeyword, searchableCandidateFields],
+  );
+
+  const visibleSettingList = useMemo(
+    () => settingList.filter((item) => item.action !== 'delete'),
+    [settingList],
+  );
+
+  const isSaveDisabled = useMemo(
+    () => visibleSettingList.length === 0,
+    [visibleSettingList],
+  );
+
+  const isEvaluatorSectionVisible = !!(
+    selectedYear &&
+    selectedOffice &&
+    selectedJobGroup &&
+    selectedJobTitle &&
+    selectedCriteria &&
+    selectedAdjustment
+  );
+
+  const {
+    rowSelectionModel: candidateSelectionModel,
+    onRowSelectionModelChange: handleCandidateSelectionChange,
+  } = useGridSelection({
+    allRows: filteredCandidateList,
+    getRowId: (row) => row.userId,
+  });
+
+  const {
+    rowSelectionModel: settingListSelectionModel,
+    onRowSelectionModelChange: handleSettingListSelectionChange,
+  } = useGridSelection({
+    allRows: settingList,
+    getRowId: (row) => row.evaluateeId,
+  });
+
+  const handleSettingRowClick = useCallback(
+    (params) => {
+      const { row } = params;
+      setSelectedCriteria({
+        id: row.criteriaMasterId,
+        title: row.criteriaMasterTitle,
+      });
+      setSelectedAdjustment({
+        id: row.adjustmentMasterId,
+        title: row.adjustmentMasterTitle,
+      });
+      handleCandidateSelectionChange({
+        type: 'include',
+        ids: new Set([row.evaluateeId]),
+      });
+      setSelectedEvaluators({
+        step1: row.evaluatorId1,
+        step2: row.evaluatorId2,
+        step3: row.evaluatorId3,
+      });
+      setEvaluatorWeights({
+        step1: String(row.evaluatorWeight1 || ''),
+        step2: String(row.evaluatorWeight2 || ''),
+        step3: String(row.evaluatorWeight3 || ''),
+      });
+    },
+    [handleCandidateSelectionChange],
+  );
+
+  const handlePreview = (basePath, id) => {
+    const popupWidth = 800;
+    const popupHeight = 600;
+    const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+    const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+    window.open(
+      `/popup${basePath}/${id}`,
+      '_blank',
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
+    );
+  };
+
+  const handleApplyToList = () => {
+    const getEvaluatorName = (step, id) => {
+      if (!id) return null;
+      const list = evaluatorList[step] || [];
+      return list.find((e) => e.userId === id)?.userName || null;
+    };
+    const evaluatorName1 = getEvaluatorName('step1', selectedEvaluators.step1);
+    const evaluatorName2 = getEvaluatorName('step2', selectedEvaluators.step2);
+    const evaluatorName3 = getEvaluatorName('step3', selectedEvaluators.step3);
+    const selectedCandidateIds = Array.from(candidateSelectionModel.ids);
+
+    setSettingList((prevList) => {
+      const listMap = new Map(prevList.map((item) => [item.evaluateeId, item]));
+      selectedCandidateIds.forEach((candidateId) => {
+        const candidate = candidateList.find((c) => c.userId === candidateId);
+        if (!candidate) return;
+
+        const existingItem = listMap.get(candidateId);
+        const newSettingData = {
+          criteriaMasterId: selectedCriteria?.id,
+          criteriaMasterTitle: selectedCriteria?.title,
+          adjustmentMasterId: selectedAdjustment?.id,
+          adjustmentMasterTitle: selectedAdjustment?.title,
+          evaluateeId: candidate.userId,
+          evaluateeName: candidate.userName,
+          evaluatorId1: selectedEvaluators.step1 || null,
+          evaluatorName1,
+          evaluatorWeight1: evaluatorWeights.step1 || null,
+          evaluatorId2: selectedEvaluators.step2 || null,
+          evaluatorName2,
+          evaluatorWeight2: evaluatorWeights.step2 || null,
+          evaluatorId3:
+            selectedJobTitle === '02' ? selectedEvaluators.step3 || null : null,
+          evaluatorName3: selectedJobTitle === '02' ? evaluatorName3 : null,
+          evaluatorWeight3:
+            selectedJobTitle === '02' ? evaluatorWeights.step3 || null : null,
+          jobGroupCode: selectedJobGroup,
+          jobTitleCode: selectedJobTitle,
+        };
+
+        if (existingItem) {
+          listMap.set(candidateId, {
+            ...existingItem,
+            ...newSettingData,
+            action:
+              isEditMode && existingItem.action !== 'insert'
+                ? 'update'
+                : 'insert',
+          });
+        } else {
+          listMap.set(candidateId, {
+            ...newSettingData,
+            settingDetailId: crypto.randomUUID(),
+            action: 'insert',
+          });
+        }
+      });
+      return Array.from(listMap.values());
+    });
+  };
+
+  const handleExcludeFromList = () => {
+    setSettingList((prevList) => {
+      const selectedIds = settingListSelectionModel.ids;
+      return prevList.reduce((acc, item) => {
+        if (selectedIds.has(item.evaluateeId)) {
+          if (item.action === 'insert') {
+            return acc;
+          }
+          acc.push({ ...item, action: 'delete' });
+          return acc;
+        }
+        acc.push(item);
+        return acc;
+      }, []);
+    });
+    handleSettingListSelectionChange({ type: 'include', ids: new Set() });
+  };
+
+  const handleSave = async () => {
+    if (settingList.filter((item) => item.action !== 'delete').length === 0) {
+      enqueueSnackbar(
+        '저장할 평가 대상자가 없습니다. 대상자를 목록에 적용해주세요.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
+    try {
+      const payload = {
+        master: {
+          id: isEditMode ? initialData.master.settingMasterId : null,
+          evaluationYear: selectedYear,
+          officeId: selectedOffice,
+          jobGroupCode: selectedJobGroup,
+          jobTitleCode: selectedJobTitle,
+          title: title,
+        },
+        detail: settingList,
+      };
+
+      console.log(settingList);
+
+      const { success, message } = await saveSettingApi(payload);
+
+      if (success) {
+        enqueueSnackbar(message, { variant: 'success' });
+        router.push('/hr/evaluation/setting');
+      } else {
+        enqueueSnackbar(message, { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('평가 설정 저장 실패', error);
+      enqueueSnackbar('평가 설정 저장 중 오류가 발생했습니다.', {
+        variant: 'error',
+      });
+    }
+  };
+
+  // ================== 3. useEffect (Side Effects) 선언부 ==================
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      const { master, detail } = initialData;
+      if (master) {
+        setSelectedYear(master.evaluationYear);
+        setSelectedOffice(master.officeId);
+        setSelectedJobGroup(master.jobGroupCode);
+        setSelectedJobTitle(master.jobTitleCode);
+        setTitle(master.title);
+      }
+      if (detail) {
+        setSettingList(detail);
+      }
+    }
+  }, [isEditMode, initialData]);
+
+  useEffect(() => {
+    const isEvaluatorListReady =
+      evaluatorList.step1.length > 0 ||
+      evaluatorList.step2.length > 0 ||
+      evaluatorList.step3.length > 0;
+    if (
+      isEditMode &&
+      !isInitialRowClicked &&
+      settingList.length > 0 &&
+      isEvaluatorListReady
+    ) {
+      handleSettingRowClick({ row: settingList[0] });
+      setIsInitialRowClicked(true);
+    }
+  }, [
+    isEditMode,
+    isInitialRowClicked,
+    settingList,
+    evaluatorList,
+    handleSettingRowClick,
+  ]);
 
   useEffect(() => {
     if (!isEditMode) {
@@ -129,7 +380,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
           return isHireDateValid && isStillEmployed;
         });
-
       setCandidateList(filtered);
     } else {
       setCandidateList([]);
@@ -185,272 +435,25 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
   useEffect(() => {
     if (selectedJobTitle === '01') {
-      setEvaluatorWeights({
-        step1: '40',
-        step2: '60',
-        step3: '',
-      });
+      setEvaluatorWeights({ step1: '40', step2: '60', step3: '' });
     } else if (selectedJobTitle === '02') {
-      setEvaluatorWeights({
-        step1: '60',
-        step2: '12',
-        step3: '28',
-      });
+      setEvaluatorWeights({ step1: '60', step2: '12', step3: '28' });
     } else {
-      setEvaluatorWeights({
-        step1: '',
-        step2: '',
-        step3: '',
-      });
+      setEvaluatorWeights({ step1: '', step2: '', step3: '' });
     }
   }, [selectedJobTitle]);
-
-  const searchableCandidateFields = useMemo(
-    () => ['userName', 'departmentName', 'positionName'],
-    [],
-  );
-
-  const filteredCandidateList = useMemo(() => {
-    return candidateList.filter((candidate) =>
-      matchIncludes(candidate, candidateKeyword, searchableCandidateFields),
-    );
-  }, [candidateList, candidateKeyword, searchableCandidateFields]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handlePreview = (basePath, id) => {
-    const popupWidth = 800;
-    const popupHeight = 600;
-    const left = window.screenX + (window.outerWidth - popupWidth) / 2;
-    const top = window.screenY + (window.outerHeight - popupHeight) / 2;
-
-    window.open(
-      `/popup${basePath}/${id}`,
-      '_blank',
-      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
-    );
-  };
-
-  const {
-    rowSelectionModel: candidateSelectionModel,
-    onRowSelectionModelChange: handleCandidateSelectionChange,
-  } = useGridSelection({
-    allRows: filteredCandidateList,
-    getRowId: (row) => row.userId,
-  });
-
-  const {
-    rowSelectionModel: settingListSelectionModel,
-    onRowSelectionModelChange: handleSettingListSelectionChange,
-  } = useGridSelection({
-    allRows: settingList,
-    getRowId: (row) => row.evaluateeId,
-  });
-
-  const handleApplyToList = () => {
-    const getEvaluatorName = (step, id) => {
-      if (!id) return null;
-      const list = evaluatorList[step] || [];
-      return list.find((e) => e.userId === id)?.userName || null;
-    };
-
-    const evaluatorName1 = getEvaluatorName('step1', selectedEvaluators.step1);
-    const evaluatorName2 = getEvaluatorName('step2', selectedEvaluators.step2);
-    const evaluatorName3 = getEvaluatorName('step3', selectedEvaluators.step3);
-
-    const selectedCandidateIds = Array.from(candidateSelectionModel.ids);
-
-    setSettingList((prevList) => {
-      // 1. 기존 리스트를 빠른 조회를 위해 Map으로 변환
-      const listMap = new Map(prevList.map((item) => [item.evaluateeId, item]));
-
-      // 2. 선택된 대상자 목록을 순회하며 Map에 업데이트 또는 추가
-      selectedCandidateIds.forEach((candidateId) => {
-        const candidate = candidateList.find((c) => c.userId === candidateId);
-        if (!candidate) return;
-
-        const existingItem = listMap.get(candidateId);
-
-        // 현재 폼에 설정된 값들로 새로운 데이터 객체 생성
-        const newSettingData = {
-          criteriaMasterId: selectedCriteria?.id,
-          criteriaMasterTitle: selectedCriteria?.title,
-          adjustmentMasterId: selectedAdjustment?.id,
-          adjustmentMasterTitle: selectedAdjustment?.title,
-          evaluateeId: candidate.userId,
-          evaluateeName: candidate.userName,
-          evaluatorId1: selectedEvaluators.step1 || null,
-          evaluatorName1,
-          evaluatorWeight1: evaluatorWeights.step1 || null,
-          evaluatorId2: selectedEvaluators.step2 || null,
-          evaluatorName2,
-          evaluatorWeight2: evaluatorWeights.step2 || null,
-          evaluatorId3:
-            selectedJobTitle === '02' ? selectedEvaluators.step3 || null : null,
-          evaluatorName3: selectedJobTitle === '02' ? evaluatorName3 : null,
-          evaluatorWeight3:
-            selectedJobTitle === '02' ? evaluatorWeights.step3 || null : null,
-          jobGroupCode: selectedJobGroup,
-          jobTitleCode: selectedJobTitle,
-        };
-
-        if (existingItem) {
-          // 기존 항목이 있으면 덮어쓰기 (Update)
-          listMap.set(candidateId, {
-            ...existingItem, // settingDetailId 등 기존 값 유지
-            ...newSettingData, // 새로운 설정 값으로 덮어쓰기
-            // 'edit' 모드이고, 기존 항목이 서버에서 불러온 데이터('insert'가 아닌)였다면 'update'로 설정
-            action:
-              isEditMode && existingItem.action !== 'insert'
-                ? 'update'
-                : 'insert',
-          });
-        } else {
-          // 기존 항목이 없으면 새로 추가 (Insert)
-          listMap.set(candidateId, {
-            ...newSettingData,
-            settingDetailId: crypto.randomUUID(), // 새 ID 발급
-            action: 'insert', // 새 항목은 항상 'insert'
-          });
-        }
-      });
-
-      // 3. 업데이트된 Map을 다시 배열로 변환하여 반환
-      return Array.from(listMap.values());
-    });
-  };
-
-  const handleSettingRowClick = (params) => {
-    const { row } = params;
-
-    // 1. 평가 기준 선택 상태 업데이트
-    setSelectedCriteria({
-      id: row.criteriaMasterId,
-      title: row.criteriaMasterTitle,
-    });
-
-    // 2. 감/가점 기준 선택 상태 업데이트
-    setSelectedAdjustment({
-      id: row.adjustmentMasterId,
-      title: row.adjustmentMasterTitle,
-    });
-
-    // 3. 대상자 선택 상태 업데이트
-    // 직군/직책은 이미 동일한 컨텍스트이므로 상태 변경 불필요
-    // 클릭된 행의 대상자만 선택되도록 변경
-    handleCandidateSelectionChange({
-      type: 'include',
-      ids: new Set([row.evaluateeId]),
-    });
-
-    // 4. 평가자 및 가중치 상태 업데이트
-    setSelectedEvaluators({
-      step1: row.evaluatorId1,
-      step2: row.evaluatorId2,
-      step3: row.evaluatorId3,
-    });
-    setEvaluatorWeights({
-      step1: String(row.evaluatorWeight1 || ''), // null일 경우 빈 문자열로
-      step2: String(row.evaluatorWeight2 || ''),
-      step3: String(row.evaluatorWeight3 || ''),
-    });
-  };
-
-  // '목록 제외' 버튼 클릭 핸들러
-  const handleExcludeFromList = () => {
-    setSettingList((prevList) => {
-      const selectedIds = settingListSelectionModel.ids;
-      // 기존 리스트를 순회하며 새로운 리스트를 생성
-      return prevList.reduce((acc, item) => {
-        // 현재 항목이 선택된 항목인지 확인
-        if (selectedIds.has(item.evaluateeId)) {
-          // 요구사항 2: action이 'insert'인 신규 항목이면 리스트에서 완전히 제거
-          if (item.action === 'insert') {
-            return acc; // 새 배열에 추가하지 않고 건너뜀
-          }
-          // 요구사항 1: 기존 항목이면 action을 'delete'로 변경
-          acc.push({ ...item, action: 'delete' });
-          return acc;
-        }
-        // 선택되지 않은 항목은 그대로 유지
-        acc.push(item);
-        return acc;
-      }, []);
-    });
-
-    // 작업 완료 후 그리드의 선택 상태 초기화
-    handleSettingListSelectionChange({ type: 'include', ids: new Set() });
-  };
-
-  const handleSave = async () => {
-    if (settingList.filter((item) => item.action !== 'delete').length === 0) {
-      enqueueSnackbar(
-        '저장할 평가 대상자가 없습니다. 대상자를 목록에 적용해주세요.',
-        { variant: 'warning' },
-      );
-
-      return;
-    }
-
-    try {
-      const payload = {
-        master: {
-          // id: isEditMode ? initialData.master.id : null,
-          evaluationYear: selectedYear,
-          officeId: selectedOffice,
-          jobGroupCode: selectedJobGroup,
-          jobTitleCode: selectedJobTitle,
-          title: title,
-        },
-        detail: settingList,
-      };
-
-      const { success, message } = await saveSettingApi(payload);
-
-      if (success) {
-        enqueueSnackbar(message, { variant: 'success' });
-        router.push('/hr/evaluation/setting');
-      } else {
-        enqueueSnackbar(message, { variant: 'error' });
-      }
-    } catch (error) {
-      console.error('평가 설정 저장 실패', error);
-      enqueueSnackbar('평가 설정 저장 중 오류가 발생했습니다.', {
-        variant: 'error',
-      });
-    }
-  };
-
-  // action이 'delete'가 아닌 항목만 화면에 표시하기 위한 메모이제이션
-  const visibleSettingList = useMemo(
-    () => settingList.filter((item) => item.action !== 'delete'),
-    [settingList],
-  );
-
-  // 저장 버튼 비활성화 여부를 결정하는 변수
-  const isSaveDisabled = useMemo(
-    () => visibleSettingList.length === 0,
-    [visibleSettingList],
-  );
-
-  const isEvaluatorSectionVisible = !!(
-    selectedYear &&
-    selectedOffice &&
-    selectedJobGroup &&
-    selectedJobTitle &&
-    selectedCriteria &&
-    selectedAdjustment
-  );
-
+  // ================== 4. Return (JSX) ==================
   return (
     <Stack spacing={2} sx={{ height: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">
           {isEditMode ? '평가 설정 수정' : '평가 설정 등록'}
         </Typography>
-
         <Stack direction="row" gap={1}>
           <Button variant="text">목록</Button>
           <Button
@@ -465,76 +468,82 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
       <Stack spacing={2} sx={{ flex: 1, overflow: 'hidden' }}>
         <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack direction="row" spacing={2}>
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel>평가귀속년도</InputLabel>
-              <Select
-                label="평가귀속년도"
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-              >
-                {selectOptions?.year?.map((y) => (
-                  <MenuItem key={y.id} value={y.id}>
-                    {y.name1}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>사업부</InputLabel>
-              <Select
-                label="사업부"
-                value={selectedOffice}
-                onChange={(e) => setSelectedOffice(e.target.value)}
-              >
-                {selectOptions?.office?.map((o) => (
-                  <MenuItem key={o.id} value={o.id}>
-                    {o.name1}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>직군</InputLabel>
-              <Select
-                label="직군"
-                value={selectedJobGroup}
-                onChange={(e) => setSelectedJobGroup(e.target.value)}
-              >
-                {selectOptions?.jobGroup?.map((g) => (
-                  <MenuItem key={g.id} value={g.id}>
-                    {g.name1}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>직책</InputLabel>
-              <Select
-                label="직책"
-                value={selectedJobTitle}
-                onChange={(e) => setSelectedJobTitle(e.target.value)}
-              >
-                {selectOptions?.jobTitle?.map((t) => (
-                  <MenuItem key={t.id} value={t.id}>
-                    {t.name1}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
+          {isEditMode ? (
             <TextField
               label="제목"
               size="small"
               fullWidth
               value={title}
               InputProps={{ readOnly: true }}
-              placeholder="상위 항목을 모두 선택하세요"
             />
-          </Stack>
+          ) : (
+            <Stack direction="row" spacing={2}>
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <InputLabel>평가귀속년도</InputLabel>
+                <Select
+                  label="평가귀속년도"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  {selectOptions?.year?.map((y) => (
+                    <MenuItem key={y.id} value={y.id}>
+                      {y.name1}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>사업부</InputLabel>
+                <Select
+                  label="사업부"
+                  value={selectedOffice}
+                  onChange={(e) => setSelectedOffice(e.target.value)}
+                >
+                  {selectOptions?.office?.map((o) => (
+                    <MenuItem key={o.id} value={o.id}>
+                      {o.name1}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>직군</InputLabel>
+                <Select
+                  label="직군"
+                  value={selectedJobGroup}
+                  onChange={(e) => setSelectedJobGroup(e.target.value)}
+                >
+                  {selectOptions?.jobGroup?.map((g) => (
+                    <MenuItem key={g.id} value={g.id}>
+                      {g.name1}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>직책</InputLabel>
+                <Select
+                  label="직책"
+                  value={selectedJobTitle}
+                  onChange={(e) => setSelectedJobTitle(e.target.value)}
+                >
+                  {selectOptions?.jobTitle?.map((t) => (
+                    <MenuItem key={t.id} value={t.id}>
+                      {t.name1}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                label="제목"
+                size="small"
+                fullWidth
+                value={title}
+                InputProps={{ readOnly: true }}
+                placeholder="상위 항목을 모두 선택하세요"
+              />
+            </Stack>
+          )}
         </Paper>
 
         <Paper
@@ -558,7 +567,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               onSelect={setSelectedCriteria}
               onPreview={(id) => handlePreview('/hr/evaluation/criteria', id)}
             />
-
             <AdjustmentPanel
               list={initialData?.adjustmentList || []}
               enabled={
@@ -569,7 +577,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               onPreview={(id) => handlePreview('/hr/evaluation/adjustment', id)}
             />
           </Stack>
-
           <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
             <CandidatePanel
               isMounted={mounted}
@@ -580,7 +587,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               rowSelectionModel={candidateSelectionModel}
               onRowSelectionModelChange={handleCandidateSelectionChange}
             />
-
             <EvaluatorPanel
               visible={
                 isEvaluatorSectionVisible &&
@@ -599,7 +605,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
               onApply={handleApplyToList}
             />
           </Stack>
-
           <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
             <SettingDetailPanel
               isMounted={mounted}
