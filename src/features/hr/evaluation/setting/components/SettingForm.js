@@ -12,10 +12,13 @@ import {
   MenuItem,
   TextField,
 } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
 import { useState, useEffect, useMemo } from 'react';
 
 import { useGridSelection } from '@/common/hooks/useGridSelection';
 import { matchIncludes } from '@/common/utils/filters';
+import { saveSettingApi } from '@/features/hr/evaluation/setting/api/settingApi';
 import AdjustmentPanel from '@/features/hr/evaluation/setting/components/AdjustmentPanel';
 import CandidatePanel from '@/features/hr/evaluation/setting/components/CandidatePanel';
 import CriteriaPanel from '@/features/hr/evaluation/setting/components/CriteriaPanel';
@@ -57,6 +60,9 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
   // [추가] 5. 평가설정 목록 그리드에 표시될 데이터를 관리하는 상태
   const [settingList, setSettingList] = useState([]);
+
+  const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   const getName = (list, id) => list.find((x) => x.id === id)?.name1 || '';
 
@@ -379,6 +385,45 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
     handleSettingListSelectionChange({ type: 'include', ids: new Set() });
   };
 
+  const handleSave = async () => {
+    if (settingList.filter((item) => item.action !== 'delete').length === 0) {
+      enqueueSnackbar(
+        '저장할 평가 대상자가 없습니다. 대상자를 목록에 적용해주세요.',
+        { variant: 'warning' },
+      );
+
+      return;
+    }
+
+    try {
+      const payload = {
+        master: {
+          // id: isEditMode ? initialData.master.id : null,
+          evaluationYear: selectedYear,
+          officeId: selectedOffice,
+          jobGroupCode: selectedJobGroup,
+          jobTitleCode: selectedJobTitle,
+          title: title,
+        },
+        detail: settingList,
+      };
+
+      const { success, message } = await saveSettingApi(payload);
+
+      if (success) {
+        enqueueSnackbar(message, { variant: 'success' });
+        router.push('/hr/evaluation/setting');
+      } else {
+        enqueueSnackbar(message, { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('평가 설정 저장 실패', error);
+      enqueueSnackbar('평가 설정 저장 중 오류가 발생했습니다.', {
+        variant: 'error',
+      });
+    }
+  };
+
   // action이 'delete'가 아닌 항목만 화면에 표시하기 위한 메모이제이션
   const visibleSettingList = useMemo(
     () => settingList.filter((item) => item.action !== 'delete'),
@@ -403,7 +448,9 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
 
         <Stack direction="row" gap={1}>
           <Button variant="text">목록</Button>
-          <Button variant="contained">저장</Button>
+          <Button variant="contained" onClick={handleSave}>
+            저장
+          </Button>
           <Button variant="outlined" color="error">
             취소
           </Button>
