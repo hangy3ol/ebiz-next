@@ -83,7 +83,11 @@ export default function SettingView({ initialData }) {
             <Button variant="contained" onClick={handleEdit}>
               수정
             </Button>
-            <Button variant="outlined" color="error">
+            <Button
+              variant="outlined"
+              color="error"
+              disabled={master?.refCount > 0}
+            >
               삭제
             </Button>
           </Box>

@@ -259,8 +259,6 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
         detail: settingList,
       };
 
-      console.log(settingList);
-
       const { success, message } = await saveSettingApi(payload);
 
       if (success) {
@@ -455,7 +453,12 @@ export default function SettingForm({ mode, initialData, selectOptions }) {
           {isEditMode ? '평가 설정 수정' : '평가 설정 등록'}
         </Typography>
         <Stack direction="row" gap={1}>
-          <Button variant="text">목록</Button>
+          <Button
+            variant="text"
+            onClick={() => router.push('/hr/evaluation/setting')}
+          >
+            목록
+          </Button>
           <Button
             variant="contained"
             onClick={handleSave}
