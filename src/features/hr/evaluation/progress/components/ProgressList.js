@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+// [수정] useGridApiRef import 추가
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
 import { useState, useEffect, useMemo } from 'react';
@@ -27,7 +28,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
     keyword: '',
   });
 
-  // 그리드 api
+  // [추가] 그리드 api 참조
   const apiRef = useGridApiRef();
 
   const columns = useMemo(
@@ -35,30 +36,23 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
       {
         field: 'rowNum',
         headerName: '번호',
-        align: 'center',
-        headerAlign: 'center',
       },
       {
         field: 'evaluationYearLabel',
         headerName: '평가귀속연도',
-        align: 'center',
-        headerAlign: 'center',
       },
       { field: 'officeName', headerName: '사업부' },
       { field: 'title', headerName: '평가명' },
       { field: 'createdByName', headerName: '등록자' },
       { field: 'createdAt', headerName: '등록일시' },
     ],
-    [], // 의존성 배열을 비워두어 최초 1회만 생성되도록 함
-  );
-
-  // [추가] 키워드 검색 대상 필드 정의
-  const searchableFields = useMemo(
-    () => ['title', 'officeName', 'createdByName'],
     [],
   );
 
-  // [추가] 필터링된 행 데이터
+  const searchableFields = useMemo(
+    () => columns.map((column) => column.field),
+    [columns],
+  );
   const filteredRows = useMemo(() => {
     return initialRows.filter(
       (row) =>
@@ -74,8 +68,29 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
     setMounted(true);
   }, []);
 
+  // [추가] 검색 조건, 그리드 초기화 메서드
+  const handleReset = () => {
+    // 1. 검색 조건 상태 초기화
+    setFilters({
+      evaluationYear: '',
+      officeId: '',
+      jobGroup: '',
+      jobTitle: '',
+      keyword: '',
+    });
+
+    // 2. DataGrid 내부 상태 초기화 (apiRef 사용)
+    if (apiRef.current) {
+      apiRef.current.setFilterModel({ items: [] });
+      apiRef.current.setSortModel([]);
+      apiRef.current.autosizeColumns({ includeHeaders: true, expand: true });
+      apiRef.current.setPage(0);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* ... 제목, 필터 영역은 이전과 동일 ... */}
       <Box
         sx={{
           display: 'flex',
@@ -87,7 +102,6 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
         <Typography variant="h4">평가 진행 목록</Typography>
       </Box>
 
-      {/* 버튼 제어 영역 */}
       <Box
         sx={{
           display: 'flex',
@@ -98,11 +112,9 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
           mb: 2,
         }}
       >
-        {/* 필터 영역 (좌측) */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <FormControl sx={{ minWidth: 150 }} size="small">
             <InputLabel>평가귀속연도</InputLabel>
-            {/* [수정] value, onChange 추가 */}
             <Select
               label="평가귀속연도"
               value={filters.evaluationYear}
@@ -123,7 +135,6 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
           </FormControl>
           <FormControl sx={{ minWidth: 150 }} size="small">
             <InputLabel>사업부</InputLabel>
-            {/* [수정] value, onChange 추가 */}
             <Select
               label="사업부"
               value={filters.officeId}
@@ -141,7 +152,6 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
           </FormControl>
           <FormControl sx={{ minWidth: 120 }} size="small">
             <InputLabel>직군</InputLabel>
-            {/* [수정] value, onChange 추가 */}
             <Select
               label="직군"
               value={filters.jobGroup}
@@ -159,7 +169,6 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
           </FormControl>
           <FormControl sx={{ minWidth: 120 }} size="small">
             <InputLabel>직책</InputLabel>
-            {/* [수정] value, onChange 추가 */}
             <Select
               label="직책"
               value={filters.jobTitle}
@@ -176,7 +185,6 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
             </Select>
           </FormControl>
           <FormControl sx={{ minWidth: 200 }} size="small">
-            {/* [수정] value, onChange 추가 */}
             <TextField
               label="키워드 검색"
               variant="outlined"
@@ -187,7 +195,10 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               }
             />
           </FormControl>
-          <Button variant="outlined">초기화</Button>
+          {/* [수정] onClick 이벤트에 handleReset 연결 */}
+          <Button variant="outlined" onClick={handleReset}>
+            초기화
+          </Button>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}></Box>
       </Box>
@@ -196,6 +207,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {mounted ? (
           <DataGrid
+            // [수정] apiRef prop 추가
             apiRef={apiRef}
             rows={filteredRows}
             columns={columns}
