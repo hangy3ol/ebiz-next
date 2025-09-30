@@ -11,14 +11,15 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-// [수정] useGridApiRef import 추가
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { koKR } from '@mui/x-data-grid/locales';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 
 import { matchEquals, matchIncludes } from '@/common/utils/filters';
 
 export default function ProgressList({ initialRows = [], filterOptions = {} }) {
+  // 상태
   const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState({
     evaluationYear: '',
@@ -28,9 +29,13 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
     keyword: '',
   });
 
-  // [추가] 그리드 api 참조
+  // 그리드 api
   const apiRef = useGridApiRef();
 
+  // 훅
+  const router = useRouter();
+
+  // 그리드 컬럼
   const columns = useMemo(
     () => [
       {
@@ -49,6 +54,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
     [],
   );
 
+  // 필터
   const searchableFields = useMemo(
     () => columns.map((column) => column.field),
     [columns],
@@ -64,11 +70,12 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
     );
   }, [initialRows, filters, searchableFields]);
 
+  // 마운트
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // [추가] 검색 조건, 그리드 초기화 메서드
+  // 검색 조건, 그리드 초기화
   const handleReset = () => {
     // 1. 검색 조건 상태 초기화
     setFilters({
@@ -88,9 +95,19 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
     }
   };
 
+  // 등록
+  const handleCreate = async () => {
+    router.push(`/hr/evaluation/progress/new`);
+  };
+
+  // 그리드 행 원클릭
+  const handleRowClick = ({ id, row }) => {
+    router.push(`/hr/evaluation/progress/${id}`);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ... 제목, 필터 영역은 이전과 동일 ... */}
+      {/*  제목 + 전역 액션 버튼 줄 */}
       <Box
         sx={{
           display: 'flex',
@@ -102,6 +119,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
         <Typography variant="h4">평가 진행 목록</Typography>
       </Box>
 
+      {/*  버튼 제어 영역 (그리드 액션 관련) */}
       <Box
         sx={{
           display: 'flex',
@@ -112,6 +130,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
           mb: 2,
         }}
       >
+        {/* 필터 영역 (좌측) */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <FormControl sx={{ minWidth: 150 }} size="small">
             <InputLabel>평가귀속연도</InputLabel>
@@ -133,6 +152,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               ))}
             </Select>
           </FormControl>
+
           <FormControl sx={{ minWidth: 150 }} size="small">
             <InputLabel>사업부</InputLabel>
             <Select
@@ -150,6 +170,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               ))}
             </Select>
           </FormControl>
+
           <FormControl sx={{ minWidth: 120 }} size="small">
             <InputLabel>직군</InputLabel>
             <Select
@@ -167,6 +188,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               ))}
             </Select>
           </FormControl>
+
           <FormControl sx={{ minWidth: 120 }} size="small">
             <InputLabel>직책</InputLabel>
             <Select
@@ -184,6 +206,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               ))}
             </Select>
           </FormControl>
+
           <FormControl sx={{ minWidth: 200 }} size="small">
             <TextField
               label="키워드 검색"
@@ -195,19 +218,24 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               }
             />
           </FormControl>
-          {/* [수정] onClick 이벤트에 handleReset 연결 */}
+
           <Button variant="outlined" onClick={handleReset}>
             초기화
           </Button>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}></Box>
+
+        {/* 그리드 관련 도구 영역 (우측) */}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="contained" onClick={handleCreate}>
+            등록
+          </Button>
+        </Box>
       </Box>
 
       {/* 그리드 */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {mounted ? (
           <DataGrid
-            // [수정] apiRef prop 추가
             apiRef={apiRef}
             rows={filteredRows}
             columns={columns}
@@ -220,7 +248,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
             density="compact"
             localeText={{
               ...koKR.components.MuiDataGrid.defaultProps.localeText,
-              noRowsLabel: '진행할 평가가 없습니다.',
+              noRowsLabel: '등록된 데이터가 없습니다.',
             }}
             disableColumnMenu
             autosizeOnMount
@@ -228,6 +256,7 @@ export default function ProgressList({ initialRows = [], filterOptions = {} }) {
               includeHeaders: true,
               expand: true,
             }}
+            onRowClick={handleRowClick}
             slotProps={{
               loadingOverlay: {
                 variant: 'linear-progress',

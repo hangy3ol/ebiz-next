@@ -54,7 +54,5 @@ export default async function ProgressPage() {
     filterOptions.jobTitle = jobTitleResult.result;
   }
 
-  console.log(filterOptions);
-
   return <ProgressList initialRows={result} filterOptions={filterOptions} />;
 }

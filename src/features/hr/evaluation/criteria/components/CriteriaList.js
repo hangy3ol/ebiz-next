@@ -201,7 +201,6 @@ export default function CriteriaList({ initialData, filterOptions = {} }) {
       </Box>
 
       {/* 그리드 */}
-
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {mounted ? (
           <DataGrid
